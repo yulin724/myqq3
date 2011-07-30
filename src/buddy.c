@@ -88,7 +88,6 @@ void buddy_set_all_off( struct qqclient* qq )
 void buddy_update_list( qqclient* qq )
 {
 	prot_buddy_update_list( qq, 0 );
-	prot_buddy_update_online( qq, 0 );
 }
 
 void buddy_update_info( qqclient* qq, qqbuddy* b )

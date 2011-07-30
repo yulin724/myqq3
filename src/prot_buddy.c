@@ -68,6 +68,7 @@ void prot_buddy_update_list_reply( struct qqclient* qq, qqpacket* p )
 	}else{
 		DBG("buddy_count: %d", qq->buddy_list.count );
 		buddy_set_all_off( qq );
+		prot_buddy_update_online( qq, 0 );
 #ifndef NO_BUDDY_DETAIL_INFO
 		prot_buddy_update_signiture( qq, 0 );
 		prot_buddy_update_account( qq, 0 );
