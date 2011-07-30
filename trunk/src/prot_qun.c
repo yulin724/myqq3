@@ -62,13 +62,13 @@ void prot_qun_send_msg( struct qqclient* qq, uint number, char* msg_content )
 	put_int( content_buf, 0x00000000 );
 	put_int( content_buf, p->time_create );
 	put_int( content_buf, rand() );
-	put_int( content_buf, 0x00000000 );
-	put_int( content_buf, 0x09008600 );
+	put_int( content_buf, 0x00000000 ); // starkwong: 0x00BBGGRR
+	put_int( content_buf, 0x09008600 ); // starkwong: byte1=font size, byte2=bold(1)|italic(2)|underline(4)
 	char font_name[] = "宋体";	//must be in UTF8
 	put_word( content_buf, strlen(font_name) );
 	put_data( content_buf, (void*)font_name, strlen( font_name) );
 	put_word( content_buf, 0x0000 );
-	put_byte( content_buf, 0x01 );
+	put_byte( content_buf, 0x01 ); // 01=text, 02=face, 03=image
 	put_word( content_buf, len+3 );
 	put_byte( content_buf, 1 );			//unknown, keep 1
 	put_word( content_buf, len );
