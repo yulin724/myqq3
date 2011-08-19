@@ -37,7 +37,7 @@ int mkdir_recursive( char* path )
 			*p = 0;
 			if( access( path, 0 ) != 0 ){
 #ifdef __WIN32__
-				mkdir( path );
+				CreateDirectory( path, NULL );
 #else
 				if( mkdir( path, S_IRWXU ) != 0 )
 					return -1;
@@ -47,7 +47,7 @@ int mkdir_recursive( char* path )
 		}
 	}
 #ifdef __WIN32__
-	return mkdir( path );
+	return CreateDirectory( path, NULL );
 #else
 	return mkdir( path, S_IRWXU );
 #endif
@@ -128,7 +128,7 @@ int http_request( int* http_sock, char* url, char* session, char* data, int* dat
 				memcpy( (void*)data, (void*)next, data_len );
 				*datalen = data_len;
 			}else{
-				DBG("datalen is too small.");
+				DBG (("datalen is too small."));
 			}
 		}
 	}
@@ -152,5 +152,5 @@ int get_splitable_pos( char* buf, int pos )
 			pos--;
 		while( pos && (uchar)buf[pos]<0xC2 );
 	}
-	return pos;	//buf[pos]ä¸å¯å–
+	return pos;	//buf[pos]²»¿ÉÈ¡
 }

@@ -2,7 +2,7 @@
 #define _MEMORY_H
 
 #include <time.h>
-#include <pthread.h>
+#include "commplatform.h"
 
 #define MEMO_LEN 64
 #define MAX_ALLOCATION 4096
@@ -21,7 +21,7 @@ typedef struct mem_detail{
 }mem_detail;
 
 
-#define NEW( p, size ) { p = malloc(size); memset( p, 0, size ); }
+#define NEW( p, size ) { *(void **)&p = malloc(size); memset( p, 0, size ); }
 #define DEL( p ) { free((void*)p); p = NULL; }
 
 //

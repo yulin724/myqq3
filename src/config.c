@@ -36,7 +36,7 @@ enum PARSING{
 static void add( config* c, char* name, char* value )
 {
 	if( c->item_count >= 1024 ){
-		DBG("failed to add config item: too many.");
+		DBG (("failed to add config item: too many."));
 		return;
 	}
 	int i = c->item_count ++;
@@ -106,22 +106,30 @@ static void parse( config*conf, char* buf, int len )
 	}
 }
 
-static char default_configs[]="### Default Configuration ###\n"
+static char default_configs[]="### È±Ê¡ÅäÖÃ ###\n\n"
+"# ÊÇ·ñ¼ÇÂ¼·¢ËÍºÍ½ÓÊÕ°üµÄÐÅÏ¢¡£\n"
 "QQPacketLog = false\n"
+"\n"
+"# ÊÇ·ñ´òÓ¡µ÷ÊÔÐÅÏ¢µ½¿ØÖÆÌ¨¡£\n"
 "QQTerminalLog = false\n"
-"# æ—¥å¿—ç›®å½•ï¼Œåˆ é™¤ä¸‹é¢ä¸€æ¡å°†ä¸è®°å½•æ—¥å¿—ã€‚\n"
+"\n"
+"# ÈÕÖ¾Ä¿Â¼£¬É¾³ýÏÂÃæÒ»Ìõ½«²»¼ÇÂ¼ÈÕÖ¾¡£\n"
 "QQLogDir = ./log\n"
-"# éªŒè¯ç ç›®å½•\n"
+"\n"
+"# ÑéÖ¤ÂëÄ¿Â¼¡£\n"
 "QQVerifyDir = ./verify\n"
-"# ç™»å½•æ–¹å¼ UDP or TCP or PROXY_HTTP\n"
+"\n"
+"# µÇÂ¼·½Ê½(UDP/TCP/PROXY_HTTP)¡£\n"
 "QQNetwork = UDP\n"
+"\n"
+"# ½ûÖ¹Ê¹ÓÃÉ«²Ê£¬true±íÊ¾½ûÖ¹É«²ÊÎÄ×Ö¡£\n"
 "NO_COLOR = false\n"
-"ä¸‹é¢ä¸ºQQæœåŠ¡å™¨åˆ—è¡¨ï¼Œæ¯ä¸ªæœåŠ¡å™¨ç”¨|æ¥éš”å¼€ï¼ŒIPå’Œç«¯å£ç”¨:æ¥ç»™å¼€ã€‚\n"
-"ç”µä¿¡æœåŠ¡å™¨\n"
-"#QQTcpServerList = 219.133.60.173:80|219.133.38.232:80|219.133.40.177:80\n"
-"æœ€å¤šå…è®¸æ·»åŠ 16ä¸ª\n"
+"\n"
+"ÏÂÃæÎªQQ·þÎñÆ÷ÁÐ±í£¨×î¶àÔÊÐíÌí¼Ó16¸ö£©£¬Ã¿¸ö·þÎñÆ÷ÓÃ|À´¸ô¿ª£¬IPºÍ¶Ë¿ÚÓÃ:À´¸ø¿ª¡£\n"
 "QQTcpServerList = 219.133.60.173:443|219.133.49.125:443|58.60.15.33:443\n"
 "QQUdpServerList = 219.133.49.171:8000|58.60.14.37:8000|219.133.60.36:8000|58.60.15.39:8000|sz6.tencent.com:8000|sz7.tencent.com:8000\n"
+"\n"
+"HTTP´úÀí·þÎñÆ÷¡£\n"
 "QQHttpProxyServerList = \n"
 ;
 
@@ -130,7 +138,7 @@ int config_open( config* c, char* filename )
 	FILE* fp;
 	fp = fopen ( filename, "r" );
 	if( fp == NULL ){
-		DBG("failed to open file %s", filename );
+		DBG (("failed to open file %s", filename ));
 		fp = fopen( filename, "w" );
 		if( fp == NULL )
 			return -1;
@@ -147,7 +155,7 @@ int config_open( config* c, char* filename )
 		memset( c, 0, sizeof(config) );
 		parse( c, buf, len );
 	}else{
-		DBG("failed to read file %s", filename );
+		DBG (("failed to read file %s", filename ));
 		fclose( fp );
 		return -2;
 	}
@@ -171,7 +179,7 @@ int config_readint( config*c, char* name )
 			return atol( c->items[i]->value );
 		}
 	}
-//	DBG("config item not found.");
+//	DBG (("config item not found."));
 	return 0;
 }
 
@@ -185,7 +193,7 @@ char* config_readstr( config*c, char* name )
 			return c->items[i]->value;
 		}
 	}
-//	DBG("config item not found.");
+//	DBG (("config item not found."));
 	return NULL;
 }
 

@@ -2,7 +2,9 @@
 #define _QQDEF_H
 
 #include <time.h>
+#ifndef __WIN32__
 #include <unistd.h>
+#endif
 #include "util.h"
 typedef unsigned int uint;
 typedef unsigned short ushort;
@@ -40,11 +42,11 @@ typedef unsigned char uchar;
 
 #define MAX_LOOP_PACKET 32
 #define MAX_COMMAND 0x0200
-#define MAX_BUDDY 1200	//æœ€å¤§å¥½å‹ä¸ªæ•°
-#define MAX_QUN	128	//æœ€å¤šç¾¤ä¸ªæ•°
-#define MAX_QUN_MEMBER 800	//ç¾¤æœ€å¤š800æˆå‘˜
-#define MAX_GROUP 128	//æœ€å¤šåˆ†ç»„ä¸ªæ•°
-#define MAX_EVENT 128	//æœ€å¤šäº‹ä»¶ç¼“å†²ä¸ªæ•°
+#define MAX_BUDDY 1200	//×î´óºÃÓÑ¸öÊı
+#define MAX_QUN	128	//×î¶àÈº¸öÊı
+#define MAX_QUN_MEMBER 800	//Èº×î¶à800³ÉÔ±
+#define MAX_GROUP 128	//×î¶à·Ö×é¸öÊı
+#define MAX_EVENT 128	//×î¶àÊÂ¼ş»º³å¸öÊı
 #define USER_INFO_LEN 256
 #define MAX_USER_INFO 38
 #define SIGNITURE_LEN 256	//100
@@ -63,10 +65,10 @@ typedef struct token{
 	uchar	data[TOKEN_LEN];
 }token;
 
-//#define QQ_VERSION	0x1205	//ç¥ˆç¦ç‰ˆ
-//#define QQ_VERSION	0x115b	//è´ºå²ç‰ˆ
+//#define QQ_VERSION	0x1205	//Æí¸£°æ
+//#define QQ_VERSION	0x115b	//ºØËê°æ
 //#define QQ_VERSION	0x1525	//QQ2009Preview4
-//#define QQ_VERSION	0x1663	//QQ2009æ­£å¼ç‰ˆ
+//#define QQ_VERSION	0x1663	//QQ2009ÕıÊ½°æ
 //#define QQ_VERSION	0x1801	//QQ2009 International Beta1
 //#define	QQ_VERSION		0x1A3A		//TM2009 Beta3.2
 #define   QQ_VERSION	0x2227	//QQ2011 Beta2

@@ -45,7 +45,7 @@ void prot_group_download_list_reply( struct qqclient* qq, qqpacket* p )
 	uchar result = get_byte( buf );
 	uint next_pos;
 	if( result != 0 ){
-		DBG("result = %d", result );
+		DBG (("result = %d", result ));
 		return ;
 	}
 	if( cmd == 0x01 ){	//download
@@ -69,7 +69,7 @@ void prot_group_download_list_reply( struct qqclient* qq, qqpacket* p )
 			}
 		}
 	}else{
-		DBG("unknown cmd=%x", cmd );
+		DBG (("unknown cmd=%x", cmd ));
 	}
 }
 */
@@ -96,7 +96,7 @@ void prot_group_download_labels_reply( struct qqclient* qq, qqpacket* p )
 			return;
 		}
 		if( next_pos != 0x00 ){
-			DBG("next_pos == 0x%x", next_pos );
+			DBG (("next_pos == 0x%x", next_pos ));
 		}
 		get_byte( buf );	//unknown
 		get_word( buf );
@@ -113,11 +113,11 @@ void prot_group_download_labels_reply( struct qqclient* qq, qqpacket* p )
 			memset( g->name, 0, NICKNAME_LEN );
 			get_data( buf, (uchar*)g->name, len );
 			g->order = order;
-			DBG("group id: %u  name: %s", g->number, g->name );
+			DBG (("group id: %u  name: %s", g->number, g->name ));
 		}
 		group_put_event( qq );
 		buddy_put_event( qq );
 	}else{
-		DBG("unknown cmd=%x", cmd );
+		DBG (("unknown cmd=%x", cmd ));
 	}
 }

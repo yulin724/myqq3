@@ -45,12 +45,12 @@ void memory_new( void** p, int size, char* memo )
 	*p = NULL;
 	if( g_md->item_count >= MAX_ALLOCATION )
 	{
-		DBG("no more allocations."); return;
+		DBG (("no more allocations.")); return;
 	}
 	*p = malloc(size);
 	memset( *p, 0, size );
 	if( *p == NULL ){
-		DBG("no enough memory.");
+		DBG (("no enough memory."));
 		exit(-1);
 	}
 	pthread_mutex_lock( &g_md->mutex_mem );
@@ -85,13 +85,13 @@ void memory_delete( void* p )
 			return;
 		}
 	}
-	DBG("not found pointer %x", p );
+	DBG (("not found pointer %x", p ));
 	pthread_mutex_unlock( &g_md->mutex_mem );
 }
 
 void memory_end(){
 	if( !g_md ) return;
-	DBG("g_md->item_count = %d", g_md->item_count );
+	DBG (("g_md->item_count = %d", g_md->item_count ));
 	if( g_md->item_count>0 ){
 		memory_print();
 	}
@@ -100,7 +100,7 @@ void memory_end(){
 
 void memory_print(){
 	if( !g_md ) return;
-	DBG("#memory info dumping (item_count: %d) ", g_md->item_count );
+	DBG (("#memory info dumping (item_count: %d) ", g_md->item_count ));
 	int i;
 	pthread_mutex_lock( &g_md->mutex_mem );
 	for( i=0; i<g_md->item_count; i++ )
@@ -108,8 +108,8 @@ void memory_print(){
 		char timestr[10];
 		struct tm* t = localtime( & g_md->items[i]->time_alloc);
 		strftime( timestr, 10, "%X", t );
-		DBG("[%d] 0x%x(%d)\t%s\t%s", i, g_md->items[i]->pointer, g_md->items[i]->size, 
-			g_md->items[i]->memo, timestr );
+		DBG (("[%d] 0x%x(%d)\t%s\t%s", i, g_md->items[i]->pointer, g_md->items[i]->size, 
+			g_md->items[i]->memo, timestr ));
 	}
 	pthread_mutex_unlock( &g_md->mutex_mem );
 }

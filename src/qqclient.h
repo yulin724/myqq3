@@ -1,7 +1,6 @@
 #ifndef _QQCLIENT_H
 #define _QQCLIENT_H
 
-#include <pthread.h>
 #include <time.h>
 #include "qqdef.h"
 #include "packetmgr.h"
@@ -10,6 +9,7 @@
 #include "loop.h"
 #include "qqsocket.h"
 #include "protocol.h"
+#include "commplatform.h"
 
 //login process
 enum LOGIN_PROCESS{

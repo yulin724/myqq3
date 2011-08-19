@@ -1,29 +1,61 @@
 # Makefile for MyQQ
 
-CC=		gcc
-CFLAGS=		-c -Wall
-LDFLAGS=	-lpthread -s
-LD=		gcc
+CC = gcc
+LD = gcc
 
-OBJS=		qqsocket.o qqcrypt.o md5.o debug.o qqclient.o memory.o config.o packetmgr.o qqpacket.o \
-		prot_login.o protocol.o prot_misc.o prot_im.o prot_user.o list.o buddy.o group.o qun.o \
-		prot_group.o prot_qun.o prot_buddy.o loop.o utf8.o myqq.o util.o crc32.o qqconn.o
+DEBUGDEF =# -g
+CFLAGS = $(DEBUGDEF) -c -Wall -O2 -s
+LDFLAGS = -lpthread -s
 
-TARGET=	../myqq
+OBJ_PATH = obj
 
-all: $(TARGET)
-	@echo done.
+TARGET   = $(OBJ_PATH)/myqq
 
-$(TARGET): $(OBJS)
-	$(LD) $(OBJS) $(LDFLAGS) -o $@
+C_SOURCES = \
+	qqsocket.c \
+	qqcrypt.c \
+	md5.c \
+	debug.c \
+	qqclient.c \
+	memory.c \
+	config.c \
+	packetmgr.c \
+	qqpacket.c \
+	prot_login.c \
+	protocol.c \
+	prot_misc.c \
+	prot_im.c \
+	prot_user.c \
+	list.c \
+	buddy.c \
+	group.c qun.c \
+	prot_group.c \
+	prot_qun.c \
+	prot_buddy.c \
+	loop.c \
+	utf8.c \
+	myqq.c \
+	util.c \
+	crc32.c \
+	qqconn.c
 
-.c.o:
-	$(CC) $(CFLAGS) -o $@ $<
+C_OBJFILES = $(patsubst %.c,$(OBJ_PATH)/%.o,$(notdir $(C_SOURCES)))
 
-.PHONY: clean cleanobj
-clean:
-	rm -f *.o
-	rm -f $(TARGET)
+vpath %.c $(dir $(C_SOURCES))
 
-cleanobj:
-	rm -f *.o
+target: clean mkdir $(TARGET) copyfile
+
+copyfile:
+	cp $(TARGET) ../bin/myqq
+
+mkdir:
+	mkdir -p $(OBJ_PATH)
+	
+$(C_OBJFILES): $(OBJ_PATH)/%.o : %.c 
+	$(CC) $(INCLUDES) $(CFLAGS) -o $@ $<  
+
+$(TARGET): $(C_OBJFILES)
+	$(LD) $(LDFLAGS)$(LFLAGS) -o $@ $^ 
+
+clean:  
+	-rm -rf $(OBJ_PATH)  

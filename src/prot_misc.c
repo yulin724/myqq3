@@ -32,15 +32,16 @@
 #include "md5.h"
 #include "protocol.h"
 
-//41 éœ€è¦è‡ªå·±éªŒè¯æ‰è¢«æ·»åŠ ä¸ºå¥½å‹
-//40 æ— éœ€éªŒè¯è¢«æ·»åŠ ä¸ºå¥½å‹
-//43 ä¸»åŠ¨æ·»åŠ å¥½å‹æˆåŠŸ
+//41 ÐèÒª×Ô¼ºÑéÖ¤²Å±»Ìí¼ÓÎªºÃÓÑ
+//40 ÎÞÐèÑéÖ¤±»Ìí¼ÓÎªºÃÓÑ
+//43 Ö÷¶¯Ìí¼ÓºÃÓÑ³É¹¦
 void prot_misc_broadcast( struct qqclient* qq, qqpacket* p )
 {
 	bytebuffer *buf = p->buf;
 	char  e[4][256];
 	char* str = (char*)buf->data;
 	int i, len, s, j;
+	uint from, to;
 	len = buf->len;
 	memset( e, 0, sizeof(e) );
 	for( i=0, s=0, j=0; i<=len && j<4; i++ ){
@@ -55,8 +56,7 @@ void prot_misc_broadcast( struct qqclient* qq, qqpacket* p )
 		char event[384];
 		sprintf( event, "broadcast^$%s^$%s", e[1], e[3] );
 		qqclient_put_event( qq, event );
-	}else if( strcmp( e[0], "41" ) == 0 ){//still work in qq2009 #è¢«åŠ ä¸ºå¥½å‹ï¼Œè¦éªŒè¯
-		uint from, to;
+	}else if( strcmp( e[0], "41" ) == 0 ){//still work in qq2009 #±»¼ÓÎªºÃÓÑ£¬ÒªÑéÖ¤
 		uchar type;
 		from = atoi( e[1] );
 		to = atoi( e[2] );
@@ -77,10 +77,9 @@ void prot_misc_broadcast( struct qqclient* qq, qqpacket* p )
 		}else{
 			strcpy( e[0], "Nothing" );
 		}
-		sprintf( e[1], "[%u]è¯·æ±‚ä½ æ·»åŠ ä¸ºå¥½å‹ã€‚é™„è¨€ï¼š%s", from, e[0] );
+		sprintf( e[1], "[%u]ÇëÇóÄãÌí¼ÓÎªºÃÓÑ¡£¸½ÑÔ£º%s", from, e[0] );
 		buddy_msg_callback( qq, 101, time(NULL), e[1] );
 	}else if( strcmp( e[0], "04" ) == 0 ){
-		uint from, to;
 		from = atoi( e[1] );
 		to = atoi( e[2] );
 		uchar len = e[3][0];
@@ -91,31 +90,30 @@ void prot_misc_broadcast( struct qqclient* qq, qqpacket* p )
 		}else{
 			strcpy( e[0], "Nothing" );
 		}
-		sprintf( e[1], "[%u]æ‹’ç»ä½ æ·»åŠ ä¸ºå¥½å‹ã€‚é™„è¨€ï¼š%s", from, e[0] );
+		sprintf( e[1], "[%u]¾Ü¾øÄãÌí¼ÓÎªºÃÓÑ¡£¸½ÑÔ£º%s", from, e[0] );
 		buddy_msg_callback( qq, 100, time(NULL), e[1] );
-	}else if( strcmp( e[0], "40" ) == 0 ){  //#è¢«åŠ ä¸ºå¥½å‹ï¼Œæ— éœ€éªŒè¯
-		uint from;
+	}else if( strcmp( e[0], "40" ) == 0 ){  //#±»¼ÓÎªºÃÓÑ£¬ÎÞÐèÑéÖ¤
 		from = atoi( e[1] );
 		//e[0] e[1] e[2] can be reused 
-		sprintf( e[1], "[%u]å·²ç»æŠŠä½ æ·»åŠ ä¸ºå¥½å‹ã€‚", from );
+		sprintf( e[1], "[%u]ÒÑ¾­°ÑÄãÌí¼ÓÎªºÃÓÑ¡£", from );
 		buddy_msg_callback( qq, 101, time(NULL), e[1] );
-	}else if( strcmp( e[0], "43" ) == 0 ){  //#ä¸»åŠ¨åŠ å‹æˆåŠŸ
-		uint from, to;
+	}else if( strcmp( e[0], "43" ) == 0 ){  //#Ö÷¶¯¼ÓÓÑ³É¹¦
 		from = atoi( e[1] );
 		to = atoi( e[2] );
 		//refresh buddylist
 		buddy_update_list( qq );
-		sprintf( e[1], "[%u]å·²ç»æŠŠä½ æ·»åŠ ä¸ºå¥½å‹ï¼", from );
+		sprintf( e[1], "[%u]ÒÑ¾­°ÑÄãÌí¼ÓÎªºÃÓÑ£¡", from );
 		buddy_msg_callback( qq, 100, time(NULL), e[1] );
 	}else if( strcmp( e[0], "03" ) == 0 ){
-		uint from, to;
 		from = atoi( e[1] );
 		to = atoi( e[2] );
 		//refresh buddylist
 		buddy_update_list( qq );
-		sprintf( e[1], "ä½ å·²ç»æŠŠ[%u]æ·»åŠ ä¸ºå¥½å‹ï¼", from );
+		sprintf( e[1], "ÄãÒÑ¾­°Ñ[%u]Ìí¼ÓÎªºÃÓÑ£¡", from );
 		buddy_msg_callback( qq, 100, time(NULL), e[1] );
 	}else{
-		DBG("e[0]: %s", e[0] );
+		DBG (("e[0]: %s", e[0] ));
 	}
+	UNREFERENCED_PARAMETER( from );
+	UNREFERENCED_PARAMETER( to );
 }

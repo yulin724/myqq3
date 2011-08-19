@@ -64,9 +64,9 @@ void prot_qun_send_msg( struct qqclient* qq, uint number, char* msg_content )
 	put_int( content_buf, rand() );
 	put_int( content_buf, 0x00000000 ); // starkwong: 0x00BBGGRR
 	put_int( content_buf, 0x09008600 ); // starkwong: byte1=font size, byte2=bold(1)|italic(2)|underline(4)
-	char font_name[] = "å®‹ä½“";	//must be in UTF8
+	char font_name[] = "ËÎÌå";	//must be in UTF8
 	put_word( content_buf, strlen(font_name) );
-	put_data( content_buf, (void*)font_name, strlen( font_name) );
+	put_data( content_buf, (uchar*)font_name, strlen( font_name) );
 	put_word( content_buf, 0x0000 );
 	put_byte( content_buf, 0x01 ); // 01=text, 02=face, 03=image
 	put_word( content_buf, len+3 );
@@ -88,7 +88,7 @@ void prot_qun_get_memberinfo( struct qqclient* qq, uint number, uint* numbers, i
 	put_byte( buf, 0x0C );	//command?
 	put_int( buf, number );	//
 	int i;
-	if( count > 30 ) count = 30;	//TXQQä¸€æ¬¡èŽ·å–30ä¸ªã€‚
+	if( count > 30 ) count = 30;	//TXQQÒ»´Î»ñÈ¡30¸ö¡£
 	for( i=0; i<count; i++ ){
 		put_int( buf, numbers[i] );	//
 	}
@@ -141,7 +141,7 @@ static void parse_quninfo( struct qqclient* qq, qqpacket* p, qqqun* q )
 		len = MIN( NICKNAME_LEN-1, len );
 		get_data( buf,  (uchar*)q->name, len );
 		q->name[len] = 0;
-	//	DBG("qun: %s", q->name );
+	//	DBG (("qun: %s", q->name ));
 		get_byte( buf );
 		get_byte( buf );	//separator
 		//ann
@@ -165,7 +165,7 @@ static void parse_quninfo( struct qqclient* qq, qqpacket* p, qqqun* q )
 		uchar role = get_byte( buf );
 		qunmember* m = qun_member_get( qq, q, n, 1 );
 		if( m==NULL ){
-			DBG("m==NULL");
+			DBG (("m==NULL"));
 			break;
 		}
 		m->org = org;
@@ -187,7 +187,7 @@ static void parse_memberinfo( struct qqclient* qq, qqpacket* p, qqqun* q )
 		uint number = get_int( buf );
 		qunmember* m = qun_member_get( qq, q, number, 0 );
 		if( !m ){
-			DBG("m==NULL  number: %d", number);
+			DBG (("m==NULL  number: %d", number));
 			break;
 		}
 		m->face = get_word( buf );
@@ -197,7 +197,7 @@ static void parse_memberinfo( struct qqclient* qq, qqpacket* p, qqqun* q )
 		name_len = MIN( NICKNAME_LEN-1, name_len );
 		get_data( buf,  (uchar*)m->nickname, name_len );
 		m->nickname[name_len] = 0;
-		//TXæŠ€æœ¯æ”¹é©ä¸å½»åº•ï¼Œè¿˜ä¿ç•™ä½¿ç”¨GBç  2009-1-25 11:02
+		//TX¼¼Êõ¸Ä¸ï²»³¹µ×£¬»¹±£ÁôÊ¹ÓÃGBÂë 2009-1-25 11:02
 		//gb_to_utf8( m->nickname, m->nickname, NICKNAME_LEN-1 ); after qq2011 beta2 tx used utf8
 		get_word( buf );	//00 00
 		m->qqshow = get_byte( buf );
@@ -230,7 +230,7 @@ static void parse_membername( struct qqclient* qq, qqpacket* p, qqqun* q )
 		uint number = get_int( buf );
 		qunmember* m = qun_member_get( qq, q, number, 0 );
 		if( !m ){
-			DBG("m==NULL");
+			DBG (("m==NULL"));
 			break;
 		}
 		uchar name_len = get_byte( buf );
@@ -238,6 +238,7 @@ static void parse_membername( struct qqclient* qq, qqpacket* p, qqqun* q )
 		get_data( buf,  (uchar*)m->nickname, name_len );
 		m->nickname[name_len] = 0;
 	}
+	UNREFERENCED_PARAMETER( pos );
 }
 
 void prot_qun_cmd_reply( struct qqclient* qq, qqpacket* p )
@@ -246,13 +247,13 @@ void prot_qun_cmd_reply( struct qqclient* qq, qqpacket* p )
 	uchar cmd = get_byte( buf );
 	uchar result = get_byte( buf );
 	if( result != 0 ){
-		DBG("result = %d", result );
+		DBG (("result = %d", result ));
 		return ;
 	}
 	uint number = get_int( buf );
 	qqqun* q = qun_get( qq, number, 0 );
 	if( !q ){
-		DBG("q==null");
+		DBG (("q==null"));
 		return;
 	}
 	switch( cmd ){
@@ -271,7 +272,7 @@ void prot_qun_cmd_reply( struct qqclient* qq, qqpacket* p )
 			parse_membername( qq, p, q );
 			break;
 		default:
-			DBG("unknown cmd = %x", cmd );
+			DBG (("unknown cmd = %x", cmd ));
 	}
 
 }

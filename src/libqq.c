@@ -16,14 +16,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <pthread.h>
 #ifdef __WIN32__
 #include <winsock.h>
 #include <wininet.h>
 #else
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <unistd.h>
 #endif
 
 #include "debug.h"
@@ -37,34 +36,35 @@
 #include "config.h"
 #include "qqsocket.h"
 #include "utf8.h"
+#include "commplatform.h"
 
 #define MAX_USERS 1000
 
 static int if_init = 0;
 
-static void* login_ex( void* data )
+static void* WINAPI login_ex( void* data )
 {
 	qqclient* qq = (qqclient*) data;
 	pthread_detach(pthread_self());
-	DBG("login: %u", qq->number );
+	DBG (("login: %u", qq->number ));
 	qqclient_login( qq );
 	return NULL;
 }
 
-EXPORT void libqq_init()
+void libqq_init()
 {
 	config_init();
 	if_init = 1;
 	qqsocket_init();
 }
 
-EXPORT void libqq_cleanup()
+void libqq_cleanup()
 {
 	config_end();
 	qqsocket_end();
 }
 
-EXPORT qqclient* libqq_create( uint number, char* pass )
+qqclient* libqq_create( uint number, char* pass )
 {
 	qqclient* qq;
 	if( !if_init )
@@ -85,7 +85,7 @@ EXPORT int libqq_login( qqclient* qq )
 	pthread_t ptr;
 	ret = pthread_create( &ptr, NULL, login_ex, (void*)qq );
 	if(	ret != 0 ){
-		DBG("thread creation failed. ret=%d", ret );
+		DBG (("thread creation failed. ret=%d", ret ));
 	}
 	return ret;
 }
@@ -98,14 +98,14 @@ EXPORT int libqq_keepalive( qqclient* qq )
 
 EXPORT int libqq_logout( qqclient* qq )
 {
-	DBG("logout %u", qq->number );
+	DBG (("logout %u", qq->number ));
 	qqclient_logout( qq );
 	return 0;
 }
 
 EXPORT int libqq_detach( qqclient* qq )
 {
-	DBG("detach %u", qq->number );
+	DBG (("detach %u", qq->number ));
 	qqclient_detach( qq );
 	return 0;
 }
@@ -206,7 +206,7 @@ void qun_msg_callback ( qqclient* qq, uint uid, uint int_uid,
 	strftime( timestr, 30, "%Y-%m-%d %H:%M:%S", timeinfo );
 	q = qun_get( qq, int_uid, 1 );
 	if( !q ){
-		DBG("error: q=NULL");
+		DBG (("error: q=NULL"));
 		return;
 	}
 	len = strlen( msg );

@@ -34,7 +34,7 @@ void put_byte( bytebuffer* p, uchar b )
 	if( p->pos<p->size ){
 		p->data[p->pos++] = b;
 	}else{ 
-		DBG("packet p->pos(%d) >= p->size(%d)", p->pos, p->size );
+		DBG (("packet p->pos(%d) >= p->size(%d)", p->pos, p->size ));
 	}
 }
 
@@ -43,7 +43,7 @@ void put_word( bytebuffer* p, ushort b )
 	if( p->pos+1<p->size ){ 
 		*(ushort*)(&p->data[p->pos]) = htons(b); p->pos+=2;
 	}else{
-		DBG("packet p->pos(%d)+1 >= p->size(%d)", p->pos, p->size );
+		DBG (("packet p->pos(%d)+1 >= p->size(%d)", p->pos, p->size ));
 	}
 }
 
@@ -52,7 +52,7 @@ void put_int( bytebuffer* p, uint b )
 	if( p->pos+3<p->size ){ 
 		*(uint*)(&p->data[p->pos]) = htonl(b); p->pos+=4;
 	}else{
-		DBG("packet p->pos(%d)+3 >= p->size(%d)", p->pos, p->size );
+		DBG (("packet p->pos(%d)+3 >= p->size(%d)", p->pos, p->size ));
 	}
 }
 
@@ -62,7 +62,7 @@ void put_data( bytebuffer* p, uchar* data, int len )
 		memcpy( &p->data[p->pos], data, len );
 		p->pos += len;
 	}else{
-		DBG("packet p->pos(%d)+%d > p->size(%d)", p->pos, len, p->size );
+		DBG (("packet p->pos(%d)+%d > p->size(%d)", p->pos, len, p->size ));
 	}
 }
 
@@ -77,7 +77,7 @@ uchar get_byte( bytebuffer* p )
 	if( p->pos<p->len ){
 		b = p->data[p->pos++];
 	}else{
-		DBG("packet p->pos(%d) >= p->len(%d)", p->pos, p->len );
+		DBG (("packet p->pos(%d) >= p->len(%d)", p->pos, p->len ));
 	}
 	return b;
 }
@@ -88,7 +88,7 @@ ushort get_word( bytebuffer* p )
 	if( p->pos+1<p->len ){
 		b = *(ushort*)(&p->data[p->pos]); p->pos+=2;
 	}else{
-		DBG("packet p->pos(%d)+1 >= p->len(%d)", p->pos, p->len );
+		DBG (("packet p->pos(%d)+1 >= p->len(%d)", p->pos, p->len ));
 	}
 	return ntohs(b);
 }
@@ -99,7 +99,7 @@ uint get_int( bytebuffer* p )
 	if( p->pos+3<p->len ){
 		b = *(uint*)(&p->data[p->pos]); p->pos+=4;\
 	}else{ 
-		DBG("packet p->pos(%d)+3 >= p->len(%d)", p->pos, p->len );
+		DBG (("packet p->pos(%d)+3 >= p->len(%d)", p->pos, p->len ));
 	}
 	return ntohl(b);
 }
@@ -122,7 +122,7 @@ int get_data( bytebuffer* p, uchar* data, int len )
 		memcpy( data, &p->data[p->pos], len );
 		p->pos += len;
 	}else{ 
-		DBG("packet p->pos(%d)+%d > p->len(%d)", p->pos, len, p->len );
+		DBG (("packet p->pos(%d)+%d > p->len(%d)", p->pos, len, p->len ));
 		len = 0;
 	}
 	return len;

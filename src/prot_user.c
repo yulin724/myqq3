@@ -39,7 +39,7 @@ void prot_user_keep_alive( struct qqclient* qq )
 	bytebuffer *buf = p->buf;
 	char num_str[16];
 	sprintf( num_str, "%u", qq->number );
-	put_data( buf, (void*)num_str, strlen(num_str) );
+	put_data( buf, (uchar*)num_str, strlen(num_str) );
 	post_packet( qq, p, SESSION_KEY );
 }
 
@@ -61,8 +61,11 @@ void prot_user_keep_alive_reply( struct qqclient* qq, qqpacket* p )
 	char event[64];
 	sprintf( event, "keepalive^$%u", qq->number );
 	qqclient_put_event( qq, event );
-//	DBG("keepalive: %u ", qq->number );
-	port = ip= 0;
+//	DBG (("keepalive: %u ", qq->number ));
+	port = ip = 0;
+	UNREFERENCED_PARAMETER( t );
+	UNREFERENCED_PARAMETER( port );
+	UNREFERENCED_PARAMETER( onlines );
 }
 
 void prot_user_change_status( struct qqclient* qq )
@@ -82,12 +85,12 @@ void prot_user_change_status_reply( struct qqclient* qq, qqpacket* p )
 	bytebuffer *buf = p->buf;
 	if( get_byte( buf ) == '0' ){
 		qq->self->status = qq->mode;
-		DBG("change status to %d", qq->mode );
+		DBG (("change status to %d", qq->mode ));
 		char event[20];
 		sprintf( event, "status^$%d", qq->mode );
 		qqclient_put_event( qq, event );
 	}else{
-		DBG("change status failed.");
+		DBG (("change status failed."));
 	}
 }
 
@@ -109,7 +112,7 @@ void prot_user_get_key_reply( struct qqclient* qq, qqpacket* p )
 	cmd = get_byte( buf );
 	result = get_byte( buf );
 	if( result != 0 ){
-		DBG("faild to get key.");
+		DBG (("faild to get key."));
 	}
 	switch( cmd ){
 	case 4:	//file key
@@ -120,10 +123,10 @@ void prot_user_get_key_reply( struct qqclient* qq, qqpacket* p )
 //		get_token( buf, &tok );
 		memcpy( qq->data.file_key, key, 16 );
 //		qq->data.file_token = tok;
-		DBG("got file key.");
+		DBG (("got file key."));
 		break;
 	default:
-		DBG("got unknown key.");
+		DBG (("got unknown key."));
 	}
 }
 
@@ -143,7 +146,7 @@ void prot_user_get_notice( struct qqclient* qq, uchar type )
 		put_word( buf, 0x0008 );
 		break;
 	default:
-		DBG("unknown type.");
+		DBG (("unknown type."));
 	}
 	post_packet( qq, p, SESSION_KEY );
 }
@@ -166,11 +169,12 @@ void prot_user_get_notice_reply( struct qqclient* qq, qqpacket* p )
 				return;
 			get_data( buf, (uchar*)str, len );
 			str[len] = 0;
-			DBG("notice: %s", str );
+			DBG (("notice: %s", str ));
 			DEL( str );
 		}
 		break;
 	}
+	UNREFERENCED_PARAMETER( result );
 }
 
 void prot_user_check_ip( struct qqclient* qq )
@@ -197,7 +201,7 @@ void prot_user_check_ip_reply( struct qqclient* qq, qqpacket* p )
 	if( !str )	return;
 	t = str;
 	if( get_byte( buf ) != 2 ){
-		DBG("reply != 2" );
+		DBG (("reply != 2" ));
 		return ;
 	}
 	if( buf->pos == buf->len )
@@ -245,7 +249,7 @@ void prot_user_check_ip_reply( struct qqclient* qq, qqpacket* p )
 	get_data( buf, (uchar*)t, len );
 	t += len;
 	*t = 0;
-//	DBG("str: %s", str );
+//	DBG (("str: %s", str ));
 	DEL( str );
 }
 
@@ -267,7 +271,7 @@ void prot_user_get_level_reply( struct qqclient* qq, qqpacket* p )
 	uchar cmd;
 	cmd = get_byte( buf );
 	get_int( buf );	//self number
-//	DBG("cmd=%d", cmd );
+//	DBG (("cmd=%d", cmd ));
 	switch( cmd ){
 	case 0x88:
 		get_int( buf );	//00000003 unknown
@@ -275,15 +279,15 @@ void prot_user_get_level_reply( struct qqclient* qq, qqpacket* p )
 		qq->active_days = get_word( buf ); //active days
 		get_word( buf ); //unknown
 		qq->upgrade_days = get_word( buf ); //upgrade days
-		DBG("level: %d  active_days: %d  upgrade_days: %d", qq->level, 
-			qq->active_days, qq->upgrade_days );
+		DBG (("level: %d  active_days: %d  upgrade_days: %d", qq->level, 
+			qq->active_days, qq->upgrade_days ));
 		char event[32];
 		sprintf( event, "level^$%d^$%d^$%d", qq->level, 
 			qq->active_days, qq->upgrade_days );
 		qqclient_put_event( qq, event );
 		break;
 	default:
-		DBG("unknown cmd: 0x%x", cmd );
+		DBG (("unknown cmd: 0x%x", cmd ));
 		break;
 	}
 	
@@ -295,7 +299,7 @@ void prot_user_request_token( struct qqclient* qq, uint number, uchar operation,
 	if( !p ) return;
 	bytebuffer *buf = p->buf;
 	qq->data.operation = operation;
-	if( code ){	//è¾“å…¥éªŒè¯ç 
+	if( code ){	//ÊäÈëÑéÖ¤Âë
 		put_byte( buf, 2 );	//sub cmd
 		put_word( buf, type );	//
 		put_int( buf, number );
@@ -321,7 +325,7 @@ void prot_user_request_token_reply( struct qqclient* qq, qqpacket* p )
 	if( verify ){
 		char *url, *data, *session;
 		int datalen = KB(4);
-		DBG("need verifying...");
+		DBG (("need verifying..."));
 		if( buf->pos == buf->len )	{
 			puts("Verifying code is incorrect!");
 			return;	//verify code wrong.
@@ -329,7 +333,7 @@ void prot_user_request_token_reply( struct qqclient* qq, qqpacket* p )
 		int len, ret;
 		len = get_word( buf );
 		if( len >= 128 ){
-			DBG("url is too long.");	
+			DBG (("url is too long."));	
 			return;
 		}
 		NEW( data, datalen );
@@ -342,7 +346,7 @@ void prot_user_request_token_reply( struct qqclient* qq, qqpacket* p )
 			sprintf( path, "%s/%u.jpg", qq->verify_dir, qq->number );
 			FILE *fp;
 			fp = fopen( path, "wb" );
-			DBG("got png at %s", path );
+			DBG (("got png at %s", path ));
 			if( fp ){
 				fwrite( data, datalen, 1, fp );
 				fclose( fp );
@@ -351,7 +355,7 @@ void prot_user_request_token_reply( struct qqclient* qq, qqpacket* p )
 			qqclient_set_process( qq, P_VERIFYING );
 			puts("You need to input the verifying code.");
 		}else{
-			DBG("http_request failed. ret=%d", ret );
+			DBG (("http_request failed. ret=%d", ret ));
 		}
 		DEL( data );
 		DEL( url );
@@ -359,7 +363,7 @@ void prot_user_request_token_reply( struct qqclient* qq, qqpacket* p )
 	}else{
 		get_token( buf, &qq->data.user_token );
 		qq->data.user_token_time = time(NULL);
-		DBG("got token");
+		DBG (("got token"));
 		qqbuddy *b = buddy_get( qq, qq->data.operating_number, 0 );
 		if( b ){
 			switch( qq->data.operation ){
@@ -377,5 +381,6 @@ void prot_user_request_token_reply( struct qqclient* qq, qqpacket* p )
 		}
 	}
 	cmd = 0;
+	UNREFERENCED_PARAMETER( cmd );
 }
 

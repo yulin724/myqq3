@@ -13,11 +13,11 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include <pthread.h>
 #include "qqdef.h"
 #include "debug.h"
 #include "memory.h"
 #include "list.h"
+#include "commplatform.h"
 
 
 int list_create( list* l, int size )
@@ -35,7 +35,7 @@ int list_append( list* l, void* data )
 	int i, ret = 0;
 	pthread_mutex_lock( &l->mutex );
 	if( l->count >= l->size ){
-		DBG("list is full. count:%d", l->count);
+		DBG (("list is full. count:%d", l->count));
 		ret = -1;
 	}else{
 		i = l->count ++;
@@ -89,7 +89,7 @@ void list_cleanup( list* l )
 	int i;
 	pthread_mutex_lock( &l->mutex );
 	if( l->count > 0 ){
-	//	DBG("list count = %d", l->count );
+	//	DBG (("list count = %d", l->count ));
 		for( i=0; i<l->count; i++ ){
 			DEL( l->items[i] );
 		}

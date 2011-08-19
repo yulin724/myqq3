@@ -112,7 +112,7 @@ void prot_login_touch_reply( struct qqclient* qq, qqpacket* p )
 			qq->server_ip = get_int( buf );
 			struct in_addr addr;
 			addr.s_addr = htonl( qq->server_ip );
-			DBG("redirecting to %s", inet_ntoa( addr ) );
+			DBG (("redirecting to %s", inet_ntoa( addr ) ));
 			if( qq->network == PROXY_HTTP ){
 				qqconn_connect( qq );
 				qqconn_establish( qq );
@@ -122,7 +122,7 @@ void prot_login_touch_reply( struct qqclient* qq, qqpacket* p )
 			}
 		}
 	}else{
-		DBG("result!=00: %d", result );
+		DBG (("result!=00: %d", result ));
 	}
 }
 
@@ -170,10 +170,11 @@ void prot_login_request_reply( struct qqclient* qq, qqpacket* p )
 	token png_token;
 	uchar next = 0;
 	uchar result = get_byte( buf );	//03: ok   04: need verifying
+	UNREFERENCED_PARAMETER( result );
 	get_byte( buf ); //00
 	get_byte( buf ); //05
 	uchar png_data = get_byte( buf );
-	get_int( buf );	//闇�瑕侀獙璇佺爜鏃朵负00 00 01 23锛屼笉闇�瑕佹椂涓哄叏0
+	get_int( buf );	//需要验证码时为00 00 01 23，不需要时为全0
 	get_token( buf, &answer_token );
 	if( png_data == 1 ){	//there's data for the png picture
 		int len;
@@ -192,7 +193,7 @@ void prot_login_request_reply( struct qqclient* qq, qqpacket* p )
 			fp = fopen( path, "wb" );
 		}else{
 			fp = fopen( path, "ab" );
-			DBG("got png at %s", path );
+			DBG (("got png at %s", path ));
 		}
 		if( fp ){
 			fwrite( data, len, 1, fp );
@@ -210,7 +211,7 @@ void prot_login_request_reply( struct qqclient* qq, qqpacket* p )
 			qqclient_set_process( qq, P_VERIFYING );
 		}
 	}else{
-		DBG("process verify password");
+		DBG (("process verify password"));
 		qq->data.token_c = answer_token;
 #ifdef LOGIN_WAIT
 		qqclient_set_process( qq, P_WAITING );
@@ -239,7 +240,7 @@ void prot_login_verify( struct qqclient* qq )
 	put_int( verify_data, qq->number );
 	put_data( verify_data, qq->data.version_spec, sizeof(qq->data.version_spec) );
 	put_byte( verify_data, 00 );
-	put_word( verify_data, 0x0000 );	//0x0000 浠�涔堟潵鐨勶紵
+	put_word( verify_data, 0x0000 );	//0x0000 什么来的？
 	put_data( verify_data, qq->md5_pass1, 16 );
 	put_int( verify_data, qq->server_time );
 	verify_data->pos += 13;
@@ -256,7 +257,7 @@ void prot_login_verify( struct qqclient* qq )
 	put_data( buf, qq->data.version_spec, sizeof(qq->data.version_spec) );
 	put_word( buf, qq->data.token_c.len );
 	put_data( buf, qq->data.token_c.data, qq->data.token_c.len );
-	if( verify_data->pos != 104 ){ DBG("wrong pos!!!");	}
+	if( verify_data->pos != 104 ){ DBG (("wrong pos!!!"));	}
 	
 	int out_len = 120;
 	uchar encrypted[120+10];
@@ -325,12 +326,12 @@ void prot_login_verify_reply( struct qqclient* qq, qqpacket* p )
 	case 0x33:
 	case 0x51:	//
 		qqclient_set_process( qq, P_DENIED );
-		DBG("Denied.");
+		DBG (("Denied."));
 		break;
 	case 0xBF:
-		DBG("No this number.");
+		DBG (("No this number."));
 	case 0x34:
-		DBG("Wrong password.");
+		DBG (("Wrong password."));
 		qqclient_set_process( qq, P_WRONGPASS );
 		break;
 	default:
@@ -338,11 +339,11 @@ void prot_login_verify_reply( struct qqclient* qq, qqpacket* p )
 		break;
 	}
 	buf->pos = 11;
-	uchar len = get_word( buf );
+	uchar len = (uchar)get_word( buf );
 	char msg[256];
 	get_data( buf, (uchar*)msg, len );
 	msg[len] = 0;
-	DBG( msg );
+	DBG (( msg ));
 	//failed
 }
 
@@ -390,7 +391,7 @@ void prot_login_get_info_reply( struct qqclient* qq, qqpacket* p )
 	uchar len = get_byte( buf );
 	get_data( buf, (void*)qq->self->nickname, len );
 	qq->self->nickname[len] = 0;
-	DBG("Hello, %s", qq->self->nickname );
+	DBG (("Hello, %s", qq->self->nickname ));
 //	prot_login_a4( qq );
 	*/
 	prot_login_send_info( qq );
@@ -407,7 +408,7 @@ void prot_login_a4( struct qqclient* qq )
 	bytebuffer *buf = p->buf;
 	put_word( buf, 0x0101 );
 	put_word( buf, 0x0000 );
-	put_byte( buf, qq->data.login_info_token.len );
+	put_byte( buf, (uchar)qq->data.login_info_token.len );
 	put_data( buf, qq->data.login_info_token.data, qq->data.login_info_token.len );
 	put_data( buf, unknown, sizeof(unknown) );
 	memcpy( p->key, qq->data.login_info_key1, sizeof(qq->data.login_info_key1) );
@@ -498,15 +499,15 @@ void prot_login_send_info_reply( struct qqclient* qq, qqpacket* p )
 	uchar result = get_byte( buf );
 	if( result != 0 )
 	{
-		DBG("login result = %d", result );
+		DBG (("login result = %d", result ));
 		qqclient_set_process( qq, P_ERROR );
 		return;
 	}
 	get_data( buf, qq->data.session_key, sizeof(qq->data.session_key) );
-	DBG("session key: " );
+	DBG (("session key: " ));
 	hex_dump( qq->data.session_key, 16 );
 	if( qq->number != get_int( buf ) ){
-		DBG("qq->number is wrong?");
+		DBG (("qq->number is wrong?"));
 	}
 	qq->client_ip = get_int( buf );
 	qq->client_port = get_word( buf );
@@ -519,9 +520,9 @@ void prot_login_send_info_reply( struct qqclient* qq, qqpacket* p )
 //	buf->pos += 96;
 //	qq->last_login_time = get_int( buf );
 	//prepare IM key
-	uchar data[20];
-	*(uint*)data = htonl( qq->number );
-	memcpy( data+4, qq->data.session_key, 16 );
+	uint data[20];
+	*data = htonl( qq->number );
+	memcpy( data+1, qq->data.session_key, 16 );
 	//md5
 	md5_state_t mst;
 	md5_init( &mst );
@@ -530,7 +531,7 @@ void prot_login_send_info_reply( struct qqclient* qq, qqpacket* p )
 	//
 	time_t t;
 	t = CN_TIME( qq->login_time );
-	DBG("login time: %s", ctime( &t ) );
+	DBG (("login time: %s", ctime( &t ) ));
 	qqclient_set_process( qq, P_LOGIN );
 
 	prot_login_get_list( qq, 1 );
@@ -554,6 +555,7 @@ void prot_login_get_list_reply( struct qqclient* qq, qqpacket* p )
 	bytebuffer *buf = p->buf;
 	ushort current_page, total_pages, count;
 	uchar subcmd = get_byte( buf );	//01
+	UNREFERENCED_PARAMETER( subcmd );
 	int i;
 	uchar result = get_byte( buf ); //00
 	if( result == 00 ){
@@ -570,13 +572,13 @@ void prot_login_get_list_reply( struct qqclient* qq, qqpacket* p )
 			if( type == 0x04 )	//if it is a qun
 			{
 #ifndef NO_QUN_INFO
-				DBG("got qun: %d", number );
+				DBG (("got qun: %d", number ));
 				qun_get( qq, number, 1 );
 #endif
 			}else if( type == 0x01 ){
 #ifndef NO_BUDDY_INFO
 				qqbuddy* b = buddy_get( qq, number, 1 );
-				DBG("got buddy: %d", number );
+				DBG (("got buddy: %d", number ));
 				if( b )
 					b->gid = gid / 4;
 #endif

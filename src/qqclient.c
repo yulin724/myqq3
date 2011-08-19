@@ -15,7 +15,6 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include <unistd.h>
 #ifdef __WIN32__
 #include <winsock.h>
 #include <wininet.h>
@@ -23,6 +22,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <unistd.h>
 #endif
 
 #include "md5.h"
@@ -63,7 +63,7 @@ static void read_config( qqclient* qq )
 int qqclient_create( qqclient* qq, uint num, char* pass )
 {
 	uchar md5_pass[16];
-	//åŠ å¯†å¯†ç 
+	//¼ÓÃÜÃÜÂë
 	md5_state_t mst;
 	md5_init( &mst );
 	md5_append( &mst, (md5_byte_t*)pass, strlen(pass) );
@@ -111,7 +111,7 @@ int qqclient_md5_create( qqclient* qq, uint num, uchar* md5_pass )
 	//create self info
 	qq->self = buddy_get( qq, qq->number, 1 );
 	if( !qq->self ){
-		DBG("[%d] Fatal error: qq->self == NULL", qq->number);
+		DBG (("[%d] Fatal error: qq->self == NULL", qq->number));
 		return -1;
 	}
 	return 0;
@@ -125,23 +125,23 @@ void qqclient_keepalive(qqclient* qq)
 	if( qq->process == P_LOGGING || qq->process == P_LOGIN || qq->process == P_VERIFYING ){
 		packetmgr_check_packet( qq, 5 );
 		if( qq->process == P_LOGIN ){
-			//1æ¬¡å¿ƒè·³/åˆ†é’Ÿ
+			//1´ÎÐÄÌø/·ÖÖÓ
 			if( counter % ( 1 *30*INTERVAL) == 0 ){
 				prot_user_keep_alive( qq );
 			}
 #ifndef NO_BUDDY_INFO
-			//10åˆ†é’Ÿåˆ·æ–°åœ¨çº¿åˆ—è¡¨ QQ2009æ˜¯5åˆ†é’Ÿåˆ·æ–°ä¸€æ¬¡ã€‚
+			//10·ÖÖÓË¢ÐÂÔÚÏßÁÐ±í QQ2009ÊÇ5·ÖÖÓË¢ÐÂÒ»´Î¡£
 			if( counter % ( 10 *60*INTERVAL) == 0 ){
 				prot_buddy_update_online( qq, 0 );
 				qun_update_online_all( qq );
 			}
 #endif
-			//30åˆ†é’Ÿåˆ·æ–°çŠ¶æ€å’Œåˆ·æ–°ç­‰çº§
+			//30·ÖÖÓË¢ÐÂ×´Ì¬ºÍË¢ÐÂµÈ¼¶
 			if( counter % ( 30 *60*INTERVAL) == 0 ){
 				prot_user_change_status( qq );
 				prot_user_get_level( qq );
 			}
-		//	//ç­‰å¾…ç™»å½•å®Œæ¯•
+		//	//µÈ´ýµÇÂ¼Íê±Ï
 			if( qq->login_finish==0 ){
 				if( loop_is_empty(&qq->packetmgr.ready_loop) && 
 					loop_is_empty(&qq->packetmgr.sent_loop) ){
@@ -154,12 +154,12 @@ void qqclient_keepalive(qqclient* qq)
 }
 
 #ifndef NO_KEEPALIVE
-static void* qqclient_keepalive_proc( void* data )
+static void* WINAPI qqclient_keepalive_proc( void* data )
 {
 	qqclient* qq = (qqclient*) data;
 	int sleepintv = 1000/INTERVAL;
 	int counter = 0;
-	DBG("keepalive");
+	DBG (("keepalive"));
 	while( qq->process != P_INIT ){
 		counter ++;
 		if( counter % INTERVAL == 0 ){
@@ -167,14 +167,14 @@ static void* qqclient_keepalive_proc( void* data )
 		}
 		USLEEP( sleepintv );
 	}
-	DBG("end.");
+	DBG (("end."));
 	return NULL;
 }
 #endif
 
 int qqclient_login( qqclient* qq )
 {
-	DBG("login");
+	DBG (("login"));
 	int ret;
 	if( qq->process != P_INIT ){
 		if( qq->process == P_WAITING ){
@@ -182,7 +182,7 @@ int qqclient_login( qqclient* qq )
 			prot_login_verify( qq );
 			return 0;
 		}
-		DBG("please logout first");
+		DBG (("please logout first"));
 		return -1;
 	}
 	if( qq->login_finish == 2 ){
@@ -218,12 +218,10 @@ void qqclient_detach( qqclient* qq )
 {
 	if( qq->process == P_INIT )
 		return;
-	if( qq->process == P_LOGIN ){
-	//	int i;
-	//	for( i = 0; i<4; i++ )
-	//		prot_login_logout( qq );
+	else if( qq->process == P_LOGIN ){
+		prot_login_logout( qq );	//let all friends know my leavel
 	}else{
-		DBG("process = %d", qq->process );
+		DBG (("process = %d", qq->process ));
 	}
 	qq->login_finish = 2;
 	qqclient_set_process( qq, P_INIT );
@@ -231,16 +229,16 @@ void qqclient_detach( qqclient* qq )
 	qqsocket_close( qq->socket );
 }
 
-//è¯¥å‡½æ•°éœ€è¦ç­‰å¾…å»¶æ—¶ï¼Œä¸ºäº†é¿å…ç­‰å¾…ï¼Œå¯ä»¥é¢„å…ˆæ‰§è¡Œdetachå‡½æ•°
+//¸Ãº¯ÊýÐèÒªµÈ´ýÑÓÊ±£¬ÎªÁË±ÜÃâµÈ´ý£¬¿ÉÒÔÔ¤ÏÈÖ´ÐÐdetachº¯Êý
 void qqclient_logout( qqclient* qq )
 {
-	if( qq->login_finish != 2 ){ 	//æœªæ‰§è¡Œè¿‡detach
+	if( qq->login_finish != 2 ){ 	//Î´Ö´ÐÐ¹ýdetach
 		if( qq->process == P_INIT )
 			return;
 		qqclient_detach( qq );
 	}
 	qq->login_finish = 0;
-	DBG("joining keepalive");
+	DBG (("joining keepalive"));
 #ifndef NO_KEEPALIVE
 	#ifdef __WIN32__
 	pthread_join( qq->thread_keepalive, NULL );
@@ -272,13 +270,13 @@ void qqclient_cleanup( qqclient* qq )
 int qqclient_verify( qqclient* qq, const char* code )
 {
 	if( qq->login_finish == 1 ){
-		qqclient_set_process( qq, P_LOGIN );	//åŽŸæ¥æ¼äº†è¿™ä¸ª  20090709
+		qqclient_set_process( qq, P_LOGIN );	//Ô­À´Â©ÁËÕâ¸ö  20090709
 		prot_user_request_token( qq, qq->data.operating_number, qq->data.operation, 1, code );
 	}else{
-		qqclient_set_process( qq, P_LOGGING );	//åŽŸæ¥è¿™ä¸ªæ˜¯P_LOGINï¼Œé”™äº†ã€‚ 20090709
+		qqclient_set_process( qq, P_LOGGING );	//Ô­À´Õâ¸öÊÇP_LOGIN£¬´íÁË¡£ 20090709
 		prot_login_request( qq, &qq->data.verify_token, code, 0 );
 	}
-	DBG("verify code: %x", code );
+	DBG (("verify code: %x", code ));
 	return 0;
 }
 
@@ -286,7 +284,7 @@ int qqclient_add( qqclient* qq, uint number, char* request_str )
 {
 	qqbuddy* b = buddy_get( qq, number, 0 );
 	if( b && b->verify_flag == VF_OK )	{
-		prot_buddy_verify_addbuddy( qq, 03, number );	//å…è®¸ä¸€ä¸ªè¯·æ±‚x
+		prot_buddy_verify_addbuddy( qq, 03, number );	//ÔÊÐíÒ»¸öÇëÇóx
 	}else{
 		strncpy( qq->data.addbuddy_str, request_str, 50 );
 		prot_buddy_request_addbuddy( qq, number );
@@ -342,28 +340,28 @@ int qqclient_get_event( qqclient* qq, char* event, int size, int wait )
 			pthread_mutex_unlock( &qq->mutex_event );
 			return -1;
 		}
-		buf = loop_pop_from_head( &qq->event_loop );
+		buf = (char*)loop_pop_from_head( &qq->event_loop );
 		if( buf ){
 			int len = strlen( buf );
 			if( len < size ){
 				strcpy( event, buf );
 			}else{
-				strncpy( event, buf, size-1 ); //strncpyçš„nä¸ªå­—ç¬¦æ˜¯å¦åŒ…æ‹¬'\n'ï¼Ÿï¼Ÿï¼Ÿ
-				DBG("buffer too small.");
+				strncpy( event, buf, size-1 ); //strncpyµÄn¸ö×Ö·ûÊÇ·ñ°üÀ¨'\n'£¿£¿£¿
+				DBG (("buffer too small."));
 			}
 			delete_func( buf );
 			pthread_mutex_unlock( &qq->mutex_event );
 			return 1;
 		}
 		if( qq->online_clock > 10 ){
-			buf = loop_pop_from_head( &qq->msg_loop );
+			buf = (char*)loop_pop_from_head( &qq->msg_loop );
 			if( buf ){
 				int len = strlen( buf );
 				if( len < size ){
 					strcpy( event, buf );
 				}else{
-					strncpy( event, buf, size-1 ); //strncpyçš„nä¸ªå­—ç¬¦æ˜¯å¦åŒ…æ‹¬'\n'ï¼Ÿï¼Ÿï¼Ÿ
-					DBG("buffer too small.");
+					strncpy( event, buf, size-1 ); //strncpyµÄn¸ö×Ö·ûÊÇ·ñ°üÀ¨'\n'£¿£¿£¿
+					DBG (("buffer too small."));
 				}
 				delete_func( buf );
 				pthread_mutex_unlock( &qq->mutex_event );

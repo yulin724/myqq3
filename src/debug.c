@@ -21,13 +21,54 @@
 #include "util.h"
 #include "qqdef.h"
 #include "utf8.h"
+#include "commplatform.h"
 
 static int dbg_term = 0, dbg_file = 0, log_day = 0;
 static FILE* fp_log = NULL;
 static char dir[128]={0,}, filename[160];
 static void init_file_path();
+static pthread_mutex_t mutex_log;
+static int mutex_log_init = 0;
 
-void print_error(char* file, char* function, int line, const char *fmt, ...)
+void lock_log()
+{
+	if(0 == mutex_log_init)
+	{
+		mutex_log_init = 1;
+		pthread_mutex_init( &mutex_log, NULL );
+	}
+	pthread_mutex_lock(&mutex_log);
+}
+void unlock_log()
+{
+	pthread_mutex_unlock(&mutex_log);
+}
+void print_error_begin(char* file, char* function, int line)
+{
+	char printbuf[512];
+	if( !dbg_term && !dbg_file )
+		return;
+
+	time_t t = time( NULL );
+	struct tm* tm1 = localtime(&t);
+	if( !tm1 ) return;
+	if( tm1->tm_mday != log_day ){
+		init_file_path();
+	}
+	char tmp[16];
+	strftime( tmp, 15, "%X", tm1 );
+	sprintf( printbuf, "%s [%s]%s(%d): ", tmp, file, function, line);
+
+	if( dbg_term ){
+		printf(printbuf);
+	}
+	if( dbg_file ){
+		fprintf( fp_log, "%s", printbuf);
+		fflush( fp_log );
+	}
+}
+
+void print_error(const char *fmt, ...)
 {
 	va_list args;
 	char printbuf[512];
@@ -35,29 +76,20 @@ void print_error(char* file, char* function, int line, const char *fmt, ...)
 	if( !dbg_term && !dbg_file )
 		return;
 	va_start(args, fmt);
-	i=vsnprintf( printbuf, 500, fmt, args );
+	i=vsprintf( printbuf, fmt, args );
 	printbuf[i] = 0;
 	va_end(args);
+#ifdef __WIN32__
+	utf8_to_gb( printbuf, printbuf, i );
+#endif
 	if( dbg_term ){
-		#ifdef __WIN32__
-			utf8_to_gb( printbuf, printbuf, i );
-		#endif
-		printf("%s(%d): %s\n", function, line, printbuf);
+		printf(printbuf);
 	}
 	if( dbg_file ){
-		time_t t = time( NULL );
-		struct tm* tm1 = localtime(&t);
-		if( !tm1 ) return;
-		if( tm1->tm_mday != log_day ){
-			init_file_path();
-		}
-		char tmp[16];
-		strftime( tmp, 15, "%X", tm1 );
-		fprintf( fp_log, "%s [%s]%s(%d): %s\n", tmp, file, function, line, printbuf);
+		fprintf( fp_log, "%s\n", printbuf);
 		fflush( fp_log );
 	}
 }
-
 static char* hex_str(unsigned char *buf, int len, char* outstr )
 {
 
