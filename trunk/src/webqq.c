@@ -67,7 +67,7 @@ static int guarder_searcher( const void* p, const void* v )
 static void* webqq_guarder( void* data )
 {
 	int counter = 0;
-	DBG("webqq_guarder");
+	DBG (("webqq_guarder"));
 	while( webqq_running ){
 		time_t timenow = time(NULL);
 		counter ++;
@@ -83,7 +83,7 @@ static void* webqq_guarder( void* data )
 		}while( u );
 		SLEEP( 1 );
 	}
-	DBG("end.");
+	DBG (("end."));
 	return NULL;
 }
 
@@ -100,13 +100,13 @@ EXPORT void webqq_init()
 
 EXPORT void webqq_end()
 {
-	DBG("webqq_ending");
+	DBG (("webqq_ending"));
 	webqq_running = 0;
 	pthread_join( thread_guarder, NULL );
 	loop_cleanup( &user_loop );
 	config_end();
 //	qqsocket_end();
-	DBG("webqq_ended");
+	DBG (("webqq_ended"));
 }
 
 
@@ -162,7 +162,7 @@ EXPORT int webqq_login( user* u )
 
 EXPORT int webqq_logout( user* u )
 {
-	DBG("logout %u", ((qqclient*)u->qq)->number );
+	DBG (("logout %u", ((qqclient*)u->qq)->number ));
 	qqclient_logout( u->qq );
 	return 0;
 }
@@ -258,7 +258,7 @@ void qun_msg_callback ( qqclient* qq, uint uid, uint int_uid,
 	}
 	q = qun_get( qq, int_uid, 1 );
 	if( !q ){
-		DBG("error: q=NULL");
+		DBG (("error: q=NULL"));
 		return;
 	}
 	len = strlen( msg );

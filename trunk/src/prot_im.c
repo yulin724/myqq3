@@ -47,7 +47,7 @@ void prot_im_send_msg( struct qqclient* qq, uint to, char* msg )
 	ushort msg_id = (ushort)rand();
 	for( i=0; i<slice_count; i++ ){
 		end_pos = get_splitable_pos( msg, pos+MIN( len-pos, max_length ) );	
-		DBG("%u send (%d,%d) %d/%d", qq->number, pos, end_pos, i, slice_count );
+		DBG (("%u send (%d,%d) %d/%d", qq->number, pos, end_pos, i, slice_count ));
 		//msg[pos] might be 0
 		prot_im_send_msg_ex( qq, to, &msg[pos], end_pos-pos, msg_id, slice_count, i );
 		pos = end_pos;
@@ -57,7 +57,7 @@ void prot_im_send_msg( struct qqclient* qq, uint to, char* msg )
 void prot_im_send_msg_ex( struct qqclient* qq, uint to, char* msg, int len,
 	ushort msg_id, uchar slice_count, uchar which_piece )
 {
-//	DBG("str: %s  len: %d", msg, len );
+//	DBG (("str: %s  len: %d", msg, len ));
 	qqpacket* p;
 	if( !len ) return;
 	p = packetmgr_new_send( qq, QQ_CMD_SEND_IM );
@@ -88,9 +88,9 @@ void prot_im_send_msg_ex( struct qqclient* qq, uint to, char* msg, int len,
 	put_int( buf, (msg_id<<16)|msg_id );	//maybe a random interger
 	put_int( buf, 0x00000000 );
 	put_int( buf, 0x09008600 );
-	char font_name[] = "å®‹ä½“";	//must be UTF8
+	char font_name[] = "\x8b\x5b\x53\x4f";//"ËÎÌå";	//must be UTF8
 	put_word( buf, strlen(font_name) );
-	put_data( buf, (void*)font_name, strlen( font_name) );
+	put_data( buf, (uchar*)font_name, strlen( font_name) );
 	put_word( buf, 0x0000 );
 	put_byte( buf, 0x01 );
 	put_word( buf, len+3 );
@@ -133,7 +133,7 @@ static void parse_message_09( qqpacket* p, qqmessage* msg, char* tmp, int outlen
 		case 01:	//pure text
 			len_str = get_word( buf );
 			len_str = MIN(len_str, outlen-i);
-			get_data( buf, (void*)&tmp[i], len_str );
+			get_data( buf, (uchar*)&tmp[i], len_str );
 			i += len_str;
 			break;
 		case 02:	//face
@@ -173,7 +173,7 @@ static void process_buddy_im_text( struct qqclient* qq, qqpacket* p, qqmessage* 
 	msg->msg_time = get_int( buf );
 	get_word( buf );	//face
 	buf->pos += 4; 	//0000001
-	//åˆ†ç‰‡
+	//·ÖÆ¬
 	msg->slice_count = get_byte( buf );
 	msg->slice_no = get_byte( buf );
 	msg->msg_id = get_word( buf );
@@ -196,7 +196,7 @@ static void process_buddy_im_text( struct qqclient* qq, qqpacket* p, qqmessage* 
 		trans_faces( tmp, msg->msg_content, MSG_CONTENT_LEN );
 		break;
 	}
-//	DBG("buddy msg from %u:", msg->from );
+//	DBG (("buddy msg from %u:", msg->from ));
 	if( qq->auto_reply[0]!='\0' ){ //
 		prot_im_send_msg( qq, msg->from, qq->auto_reply );
 	}
@@ -209,7 +209,7 @@ static void process_buddy_im( struct qqclient* qq, qqpacket* p, qqmessage* msg )
 	get_word( buf );	//version
 	msg->from = get_int( buf );
 	if( get_int( buf ) != qq->number ){
-		DBG("nothing but this is impossible!!");
+		DBG (("nothing but this is impossible!!"));
 		return;
 	}
 	//to check if this buddy is in our list, or we add it.
@@ -220,50 +220,50 @@ static void process_buddy_im( struct qqclient* qq, qqpacket* p, qqmessage* msg )
 	ushort content_type = get_word( buf );
 	switch( content_type ){
 	case QQ_NORMAL_IM_TEXT:
-	//	DBG("QQ_NORMAL_IM_TEXT");
+	//	DBG (("QQ_NORMAL_IM_TEXT"));
 		process_buddy_im_text( qq, p, msg );
 		break;
 	case QQ_NORMAL_IM_FILE_REQUEST_TCP:
-		DBG("QQ_NORMAL_IM_FILE_REQUEST_TCP");
+		DBG (("QQ_NORMAL_IM_FILE_REQUEST_TCP"));
 		break;
 	case QQ_NORMAL_IM_FILE_APPROVE_TCP:
-		DBG("QQ_NORMAL_IM_FILE_APPROVE_TCP");
+		DBG (("QQ_NORMAL_IM_FILE_APPROVE_TCP"));
 		break;
 	case QQ_NORMAL_IM_FILE_REJECT_TCP:
-		DBG("QQ_NORMAL_IM_FILE_REJECT_TCP");
+		DBG (("QQ_NORMAL_IM_FILE_REJECT_TCP"));
 		break;
 	case QQ_NORMAL_IM_FILE_REQUEST_UDP:
-		DBG("QQ_NORMAL_IM_FILE_REQUEST_UDP");
+		DBG (("QQ_NORMAL_IM_FILE_REQUEST_UDP"));
 		break;
 	case QQ_NORMAL_IM_FILE_APPROVE_UDP:
-		DBG("QQ_NORMAL_IM_FILE_APPROVE_UDP");
+		DBG (("QQ_NORMAL_IM_FILE_APPROVE_UDP"));
 		break;
 	case QQ_NORMAL_IM_FILE_REJECT_UDP:
-		DBG("QQ_NORMAL_IM_FILE_REJECT_UDP");
+		DBG (("QQ_NORMAL_IM_FILE_REJECT_UDP"));
 		break;
 	case QQ_NORMAL_IM_FILE_NOTIFY:
-		DBG("QQ_NORMAL_IM_FILE_NOTIFY");
+		DBG (("QQ_NORMAL_IM_FILE_NOTIFY"));
 		break;
 	case QQ_NORMAL_IM_FILE_PASV:
-		DBG("QQ_NORMAL_IM_FILE_PASV");
+		DBG (("QQ_NORMAL_IM_FILE_PASV"));
 		break;
 	case QQ_NORMAL_IM_FILE_CANCEL:
-		DBG("QQ_NORMAL_IM_FILE_CANCEL");
+		DBG (("QQ_NORMAL_IM_FILE_CANCEL"));
 		break;
 	case QQ_NORMAL_IM_FILE_EX_REQUEST_UDP:
-//		DBG("QQ_NORMAL_IM_FILE_EX_REQUEST_UDP");
+//		DBG (("QQ_NORMAL_IM_FILE_EX_REQUEST_UDP"));
 		break;
 	case QQ_NORMAL_IM_FILE_EX_REQUEST_ACCEPT:
-		DBG("QQ_NORMAL_IM_FILE_EX_REQUEST_ACCEPT");
+		DBG (("QQ_NORMAL_IM_FILE_EX_REQUEST_ACCEPT"));
 		break;
 	case QQ_NORMAL_IM_FILE_EX_REQUEST_CANCEL:
-		DBG("QQ_NORMAL_IM_FILE_EX_REQUEST_CANCEL");
+		DBG (("QQ_NORMAL_IM_FILE_EX_REQUEST_CANCEL"));
 		break;
 	case QQ_NORMAL_IM_FILE_EX_NOTIFY_IP:
-		DBG("QQ_NORMAL_IM_FILE_EX_NOTIFY_IP");
+		DBG (("QQ_NORMAL_IM_FILE_EX_NOTIFY_IP"));
 		break;
 	default:
-		DBG("UNKNOWN type: %x", content_type );
+		DBG (("UNKNOWN type: %x", content_type ));
 		break;
 	}
 }
@@ -278,12 +278,12 @@ static void process_sys_im( struct qqclient* qq, qqpacket* p, qqmessage* msg )
 	get_data( buf, (uchar*)msg->msg_content, len );
 	msg->msg_content[len] = 0;
 	buddy_msg_callback( qq, msg->from, msg->msg_time, msg->msg_content );
-	if( strstr( msg->msg_content, "å¦ä¸€åœ°ç‚¹ç™»å½•" ) != NULL ){
+	if( strstr( msg->msg_content, "ÁíÒ»µØµãµÇÂ¼" ) != NULL ){
 		qqclient_set_process( qq, P_BUSY );
 	}else{
 		qqclient_set_process( qq, P_ERROR );
 	}
-	DBG("sysim(type:%x): %s", content_type, msg->msg_content );
+	DBG (("sysim(type:%x): %s", content_type, msg->msg_content ));
 }
 
 static void process_qun_im( struct qqclient* qq, qqpacket* p, qqmessage* msg )
@@ -313,7 +313,7 @@ static void process_qun_im( struct qqclient* qq, qqpacket* p, qqmessage* msg )
 		break;
 	}
 	
-//	DBG("process_qun_im(number:%u): ", msg->from );
+//	DBG (("process_qun_im(number:%u): ", msg->from ));
 //	puts( msg->msg_content );
 	qun_msg_callback( qq, msg->from, msg->qun_number, msg->msg_time, msg->msg_content );
 }
@@ -335,7 +335,7 @@ static void process_qun_member_im( struct qqclient* qq, qqpacket* p, qqmessage* 
 	get_int( buf );		//ext_number
 	buf->pos += 15;	//00 0d 00 00 00 00 00 00 00 00 00 00 00 00 00 
 	process_buddy_im( qq, p, msg );
-	DBG("process_qun_member_im: qun_number: %u", msg->qun_number );
+	DBG (("process_qun_member_im: qun_number: %u", msg->qun_number ));
 }
 
 
@@ -347,9 +347,10 @@ void prot_im_recv_msg( struct qqclient* qq, qqpacket* p )
 	ushort im_type;
 	int len;
 	qqmessage *msg;
+
 /* 091027 This code maybe good for a client that prints the message as soon as it gets one.
 	if( qq->login_finish!=1 ){	//not finished login
-		DBG("Early message ... Abandoned.");
+		DBG (("Early message ... Abandoned."));
 		return;
 	}
 */
@@ -359,7 +360,7 @@ void prot_im_recv_msg( struct qqclient* qq, qqpacket* p )
 	//
 	from = get_int( buf );
 	if( get_int( buf ) != qq->number ){
-		DBG("qq->number is not equal to yours");
+		DBG (("qq->number is not equal to yours"));
 	}
 	get_int( buf );	//sequence
 	from_ip = get_int( buf );
@@ -371,7 +372,7 @@ void prot_im_recv_msg( struct qqclient* qq, qqpacket* p )
 #endif
 	switch( im_type ){
 	case QQ_RECV_IM_BUDDY_0801:
-		DBG("QQ_RECV_IM_BUDDY_0801");
+		DBG (("QQ_RECV_IM_BUDDY_0801"));
 		msg->msg_type = MT_BUDDY;
 		//fixed for qq2007, webqq. 20090621 17:57
 		buf->pos += 2;
@@ -380,18 +381,18 @@ void prot_im_recv_msg( struct qqclient* qq, qqpacket* p )
 		process_buddy_im( qq, p, msg );
 		break;
 	case QQ_RECV_IM_BUDDY_0802:
-		DBG("QQ_RECV_IM_BUDDY_0802");
+		DBG (("QQ_RECV_IM_BUDDY_0802"));
 		msg->msg_type = MT_BUDDY;
 		process_buddy_im( qq, p, msg );
 		break;
 	case QQ_RECV_IM_BUDDY_09:
-		DBG("QQ_RECV_IM_BUDDY_09");
+		DBG (("QQ_RECV_IM_BUDDY_09"));
 		msg->msg_type = MT_BUDDY;
 		buf->pos += 11;
 		process_buddy_im( qq, p, msg );
 		break;
 	case QQ_RECV_IM_BUDDY_09SP1:
-		DBG("QQ_RECV_IM_BUDDY_09SP1");
+		DBG (("QQ_RECV_IM_BUDDY_09SP1"));
 		msg->msg_type = MT_BUDDY;
 		buf->pos += 2;
 		len = get_word( buf ); 
@@ -399,10 +400,10 @@ void prot_im_recv_msg( struct qqclient* qq, qqpacket* p )
 		process_buddy_im( qq, p, msg );
 		break;
 	case QQ_RECV_IM_SOMEBODY:
-		DBG("QQ_RECV_IM_SOMEBODY");
+		DBG (("QQ_RECV_IM_SOMEBODY"));
 		break;
 	case QQ_RECV_IM_WRITING:
-//		DBG("QQ_RECV_IM_WRITING");
+//		DBG (("QQ_RECV_IM_WRITING"));
 		break;
 	case QQ_RECV_IM_QUN_IM:
 	case QQ_RECV_IM_QUN_IM_09:
@@ -411,34 +412,34 @@ void prot_im_recv_msg( struct qqclient* qq, qqpacket* p )
 		process_qun_im( qq, p, msg );
 		break;
 	case QQ_RECV_IM_TO_UNKNOWN:
-		DBG("QQ_RECV_IM_TO_UNKNOWN");
+		DBG (("QQ_RECV_IM_TO_UNKNOWN"));
 		break;
 	case QQ_RECV_IM_NEWS:
-		DBG("QQ_RECV_IM_NEWS");
+		DBG (("QQ_RECV_IM_NEWS"));
 		break;
 	case QQ_RECV_IM_UNKNOWN_QUN_IM:
-		DBG("QQ_RECV_IM_UNKNOWN_QUN_IM");
+		DBG (("QQ_RECV_IM_UNKNOWN_QUN_IM"));
 		break;
 	case QQ_RECV_IM_ADD_TO_QUN:
-		DBG("QQ_RECV_IM_ADD_TO_QUN");
+		DBG (("QQ_RECV_IM_ADD_TO_QUN"));
 		break;
 	case QQ_RECV_IM_DEL_FROM_QUN:
-		DBG("QQ_RECV_IM_DEL_FROM_QUN");
+		DBG (("QQ_RECV_IM_DEL_FROM_QUN"));
 		break;
 	case QQ_RECV_IM_APPLY_ADD_TO_QUN:
-		DBG("QQ_RECV_IM_APPLY_ADD_TO_QUN");
+		DBG (("QQ_RECV_IM_APPLY_ADD_TO_QUN"));
 		break;
 	case QQ_RECV_IM_APPROVE_APPLY_ADD_TO_QUN:
-		DBG("QQ_RECV_IM_APPROVE_APPLY_ADD_TO_QUN");
+		DBG (("QQ_RECV_IM_APPROVE_APPLY_ADD_TO_QUN"));
 		break;
 	case QQ_RECV_IM_REJCT_APPLY_ADD_TO_QUN:
-		DBG("QQ_RECV_IM_REJCT_APPLY_ADD_TO_QUN");
+		DBG (("QQ_RECV_IM_REJCT_APPLY_ADD_TO_QUN"));
 		break;
 	case QQ_RECV_IM_CREATE_QUN:
-		DBG("QQ_RECV_IM_CREATE_QUN");
+		DBG (("QQ_RECV_IM_CREATE_QUN"));
 		break;
 	case QQ_RECV_IM_TEMP_QUN_IM:
-		DBG("QQ_RECV_IM_TEMP_QUN_IM");
+		DBG (("QQ_RECV_IM_TEMP_QUN_IM"));
 	case QQ_RECV_IM_SYS_NOTIFICATION:
 		msg->msg_type = MT_SYSTEM;
 		get_int( buf );	//09 SP1 fixed
@@ -449,7 +450,7 @@ void prot_im_recv_msg( struct qqclient* qq, qqpacket* p )
 		process_qun_member_im( qq, p, msg );
 		break;
 	default:
-		DBG("Unknown message type : %x", im_type );
+		DBG (("Unknown message type : %x", im_type ));
 	}
 #ifdef NO_IM
 	}
@@ -457,5 +458,8 @@ void prot_im_recv_msg( struct qqclient* qq, qqpacket* p )
 	//ack recv
 	prot_im_ack_recv( qq, p );
 	DEL( msg );
+
+	UNREFERENCED_PARAMETER( from_port );
+	UNREFERENCED_PARAMETER( from_ip );
 }
 

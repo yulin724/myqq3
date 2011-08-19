@@ -30,7 +30,7 @@
 #include "packetmgr.h"
 
 
-//æŒ‰qqå·ç è¿›è¡Œå‡åºæ’åº
+//°´qqºÅÂë½øĞĞÉıĞòÅÅĞò
 static int buddy_comp(const void *p, const void *q)
 {
 	return ( (*(qqbuddy **)p)->number - (*(qqbuddy **)q)->number );
@@ -38,7 +38,7 @@ static int buddy_comp(const void *p, const void *q)
 
 static int searcher( const void* p, const void* v )
 {
-	return ( ((qqbuddy*)p)->number == (int)v );
+	return ( ((qqbuddy*)p)->number == (uint)v );
 }
 
 qqbuddy* buddy_get( qqclient* qq, uint number, int create )
@@ -47,7 +47,7 @@ qqbuddy* buddy_get( qqclient* qq, uint number, int create )
 		return NULL;
 //	if( create && number != qq->number ) return NULL;
 	qqbuddy* b;
-	b = list_search( &qq->buddy_list, (void*)number, searcher );
+	b = (qqbuddy*)list_search( &qq->buddy_list, (void*)number, searcher );
 	//if not found, b must be NULL
 	if( b==NULL && create ){
 		NEW( b, sizeof( qqbuddy ) );
@@ -64,7 +64,7 @@ qqbuddy* buddy_get( qqclient* qq, uint number, int create )
 void buddy_remove( qqclient* qq, uint number )
 {
 	qqbuddy* b;
-	b = list_search( &qq->buddy_list, (void*)number, searcher );
+	b = (qqbuddy*)list_search( &qq->buddy_list, (void*)number, searcher );
 	if( b ){
 		list_remove( &qq->buddy_list, b );
 	}
@@ -124,8 +124,8 @@ char* buddy_status_string( int st )
 	}
 }
 
-//buddy_put_eventçš„å‡½æ•°åœ¨ç™»å½•ä¹‹åè°ƒç”¨æ¯”è¾ƒé¢‘ç¹ï¼Œ
-//åœ¨è·å–å¥½å‹åˆ—è¡¨ï¼Œè·å–å¥½å‹åœ¨çº¿åˆ—è¡¨ï¼Œè·å–å¥½å‹ç­¾åï¼Œè·å–å¥½å‹å¤‡æ³¨
+//buddy_put_eventµÄº¯ÊıÔÚµÇÂ¼Ö®ºóµ÷ÓÃ±È½ÏÆµ·±£¬
+//ÔÚ»ñÈ¡ºÃÓÑÁĞ±í£¬»ñÈ¡ºÃÓÑÔÚÏßÁĞ±í£¬»ñÈ¡ºÃÓÑÇ©Ãû£¬»ñÈ¡ºÃÓÑ±¸×¢
 void buddy_put_event( qqclient* qq )
 {
 	char *temp;

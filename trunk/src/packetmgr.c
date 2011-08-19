@@ -46,13 +46,13 @@ qqpacket* packetmgr_new_packet( qqclient* qq )
 	qqpacket* p;
 	NEW( p, sizeof(qqpacket) );
 	if( !p ){
-		DBG("Error: No enough memory.");
+		DBG (("Error: No enough memory."));
 		return NULL;
 	}
 	p->time_create = p->time_alive = time( NULL );
 	NEW( p->buf, sizeof(bytebuffer) );
 	if( !p->buf ){
-		DBG("Error: No enough memory.");
+		DBG (("Error: No enough memory."));
 		return NULL;
 	}
 	p->buf->size = PACKET_SIZE;
@@ -67,7 +67,7 @@ qqpacket* packetmgr_new_send( qqclient* qq, int cmd )
 //	qqpacketmgr* mgr = &qq->packetmgr;
 	qqpacket* p = packetmgr_new_packet( qq );
 	if( !p ){
-		DBG("Error: No packet allocated.");
+		DBG (("Error: No packet allocated."));
 		return NULL;
 	}
 	p->head = 0x02;
@@ -109,19 +109,19 @@ static void check_ready_packets( qqclient* qq )
 	//if tcp, we send one by one, otherwise send them all
 	if( loop_is_empty(&mgr->sent_loop) )	//good luck, get a packet and send it.
 	{
-		qqpacket* p = loop_pop_from_head( &mgr->ready_loop );
+		qqpacket* p = (qqpacket*)loop_pop_from_head( &mgr->ready_loop );
 		if( p && p->buf ){
 			//remove p from ready packets
 			if( p->head!=0x02 || p->tail !=0x03 ){
-				DBG("Fatal error: p->command=%x p->head: %x p->tail: %x", p->command, p->head, 
-					p->tail );
+				DBG(("Fatal error: p->command=%x p->head: %x p->tail: %x", p->command, p->head, 
+					p->tail ));
 				delete_func( p );
 				return;
 			}
 			int ret = qqsocket_send( qq->socket, p->buf->data, p->buf->len );
-//			DBG("[%d] out packet cmd: %x", p->command );
+//			DBG (("[%d] out packet cmd: %x", p->command ));
 			if( ret != p->buf->len ){
-				DBG("send packet failed. ret(%d)!=p->len(%d)", ret, p->buf->len );
+				DBG (("send packet failed. ret(%d)!=p->len(%d)", ret, p->buf->len ));
 				delete_func( p );
 				qqclient_set_process( qq, P_ERROR );
 			}else{
@@ -133,7 +133,7 @@ static void check_ready_packets( qqclient* qq )
 				}
 			}
 		}else{
-			DBG("no packet. ");
+			DBG (("no packet. "));
 		}
 	}
 }
@@ -170,7 +170,7 @@ static int match_searcher( const void* p, const void* v )
 static qqpacket* match_packet( qqpacketmgr* mgr, qqpacket* p )
 {
 	qqpacket* m;
-	m = loop_search( &mgr->sent_loop, (void*)p, match_searcher );
+	m = (qqpacket*)loop_search( &mgr->sent_loop, (void*)p, match_searcher );
 	return m;
 }
 
@@ -186,7 +186,7 @@ int handle_packet( qqclient* qq, qqpacket* p, uchar* data, int len )
 	bytebuffer* buf;
 	NEW( buf, sizeof( bytebuffer ) );
 	if( !buf ){
-		DBG("error: no enough memory to allocate buf.");
+		DBG (("error: no enough memory to allocate buf."));
 		return -99;
 	}
 	buf->pos = 0;
@@ -198,7 +198,7 @@ int handle_packet( qqclient* qq, qqpacket* p, uchar* data, int len )
 	p->head = get_byte( buf );
 	p->tail = buf->data[buf->len-1];
 	if( p->head != 0x02 || p->tail!=0x03 || buf->len > 2000 ){
-		DBG("[%u] wrong packet. len=%d  head: %d  tail: %d", qq->number, buf->len, p->head, p->tail );
+		DBG (("[%u] wrong packet. len=%d  head: %d  tail: %d", qq->number, buf->len, p->head, p->tail ));
 		DEL( buf );
 		return -1;
 	}
@@ -215,12 +215,12 @@ int handle_packet( qqclient* qq, qqpacket* p, uchar* data, int len )
 		p->time_alive = time(NULL);
 		//do a test
 		if ( !p->buf ){
-			DBG("%u: Error impossible. p->buf: %x  p->command: %x", qq->number, p->buf, p->command );
+			DBG (("%u: Error impossible. p->buf: %x  p->command: %x", qq->number, p->buf, p->command ));
 		}
 		//deal with the packet
 		process_packet( qq, p, buf );
 		qqpacket* t;
-		while( (t = loop_pop_from_tail( &mgr->temp_loop )) ){
+		while( (t = (qqpacket*)loop_pop_from_tail( &mgr->temp_loop )) ){
 			loop_push_to_head( &mgr->ready_loop, t );
 		}
 		if( p->match ){
@@ -230,13 +230,13 @@ int handle_packet( qqclient* qq, qqpacket* p, uchar* data, int len )
 		p->match = NULL;
 		mgr->failed_packets = 0;
 	}else{
-	//	DBG("repeated packet: cmd: %x  seqno:%x", p->command, p->seqno );
+	//	DBG (("repeated packet: cmd: %x  seqno:%x", p->command, p->seqno ));
 	}
 	DEL( buf );
 	check_ready_packets( qq );
 	return 0;
 }
-void* packetmgr_recv( void* data )
+void* WINAPI packetmgr_recv( void* data )
 {
 	int ret;
 	qqpacket* p;
@@ -247,7 +247,7 @@ void* packetmgr_recv( void* data )
 	NEW( recv_buf, PACKET_SIZE );
 	p = packetmgr_new_packet( qq );
 	if( !p || !recv_buf ){
-		DBG("error: p=%x  buf=%x", p, recv_buf );
+		DBG (("error: p=%x  buf=%x", p, recv_buf ));
 		DEL( p ); DEL( recv_buf );
 		return NULL;
 	}
@@ -256,7 +256,7 @@ void* packetmgr_recv( void* data )
 		ret = qqsocket_recv( qq->socket, recv_buf, PACKET_SIZE-pos );
 		if( ret <= 0 ){
 			if( qq->process != P_INIT ){
-			//	DBG("ret=%d", ret );
+			//	DBG (("ret=%d", ret ));
 				SLEEP(1);
 				continue;
 			}else{
@@ -269,19 +269,19 @@ void* packetmgr_recv( void* data )
 			if ( pos > 2 ){
 				if( !qq->proxy_established && qq->network == PROXY_HTTP ){
 					if( strstr( (char*)recv_buf, "200" )!=NULL ){
-						DBG("proxy server reply ok!");
+						DBG (("proxy server reply ok!"));
 						qq->proxy_established = 1;
 						prot_login_touch( qq );
-						//æ‰‹åŠ¨æ·»åŠ åˆ°å‘é€é˜Ÿåˆ—ã€‚
+						//ÊÖ¶¯Ìí¼Óµ½·¢ËÍ¶ÓÁÐ¡£
 						qqpacket* t;
-						while( (t = loop_pop_from_tail( &mgr->temp_loop )) )
+						while( (t = (qqpacket*)loop_pop_from_tail( &mgr->temp_loop )) )
 							loop_push_to_head( &mgr->ready_loop, t );
-						//æ£€æŸ¥å¾…å‘é€åŒ…
+						//¼ì²é´ý·¢ËÍ°ü
 						check_ready_packets( qq );
 					}else{
-						DBG("proxy server reply failure!");
+						DBG (("proxy server reply failure!"));
 						recv_buf[ret]=0;
-						DBG( "%s", recv_buf );
+						DBG (( "%s", recv_buf ));
 						qqclient_set_process( qq, P_ERROR );
 					}
 				}else{
@@ -298,7 +298,7 @@ void* packetmgr_recv( void* data )
 							memmove( recv_buf, recv_buf+len, pos );
 						}
 					}else if( pos == PACKET_SIZE ){
-						DBG("error: pos: 0x%x ", pos );
+						DBG (("error: pos: 0x%x ", pos ));
 						pos = 0;
 					}
 				}
@@ -310,7 +310,7 @@ void* packetmgr_recv( void* data )
 	}
 	DEL( recv_buf );
 	packetmgr_del_packet( mgr, p );
-	DBG("end.");
+	DBG (("end."));
 	return NULL;
 }
 
@@ -324,7 +324,7 @@ int packetmgr_start( qqclient* qq )
 	loop_create( &mgr->temp_loop, 64, delete_func );
 	loop_create( &mgr->sent_loop, 32, delete_func );
 	ret = pthread_create( &mgr->thread_recv, NULL, packetmgr_recv, (void*)qq );
-	return 0;
+	return ret;
 }
 
 
@@ -336,7 +336,7 @@ void packetmgr_end( qqclient* qq )
 	loop_cleanup( &mgr->sent_loop );
 	loop_cleanup( &mgr->ready_loop );
 	loop_cleanup( &mgr->temp_loop );
-	DBG("packetmgr_end");
+	DBG (("packetmgr_end"));
 }
 
 static int timeout_searcher( const void* p, const void* v )
@@ -354,15 +354,15 @@ int packetmgr_check_packet( struct qqclient* qq, int timeout )
 	time_t timeout_time = time(NULL) - timeout;
 	//when locked, cannot recv packet till unlock.
 	do{
-		p = loop_search( &mgr->sent_loop, (void*)timeout_time, timeout_searcher );
+		p = (qqpacket*)loop_search( &mgr->sent_loop, (void*)timeout_time, timeout_searcher );
 		if( p ){
 			loop_remove( &mgr->sent_loop, p );
 		}
 		if( p ){
 			if( p->send_times >= 5 ){
-				DBG("[%u] Failed to send the packet. command: %x\n", qq->number, p->command );
+				DBG (("[%u] Failed to send the packet. command: %x\n", qq->number, p->command ));
 				if( p->command == QQ_CMD_SEND_IM ){
-					buddy_msg_callback( qq, 10000, time(NULL), "åˆšæ‰æŸæ¡æ¶ˆæ¯å‘é€å¤±è´¥ã€‚" );
+					buddy_msg_callback( qq, 10000, time(NULL), "¸Õ²ÅÄ³ÌõÏûÏ¢·¢ËÍÊ§°Ü¡£" );
 				}
 				//make an event to tell the program that we have a
 				//problem.
@@ -376,7 +376,7 @@ int packetmgr_check_packet( struct qqclient* qq, int timeout )
 					qqclient_set_process( qq, P_ERROR );
 				}
 			}else{
-				DBG("[%u] resend packet cmd: %x", qq->number, p->command );
+				DBG (("[%u] resend packet cmd: %x", qq->number, p->command ));
 				packetmgr_put_urge( qq, p, 1 );
 			}
 		}

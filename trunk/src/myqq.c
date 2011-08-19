@@ -14,7 +14,6 @@
  *
  *  Description: This file mainly includes the functions about 
  *			   Parsing Input Commands.
- *		 Warning: this file should be in UTF-8.
  *			   
  */
 
@@ -24,7 +23,7 @@
 #include <string.h>
 #include <time.h>
 #include <stdlib.h>
-#include <unistd.h>
+
 #ifdef __WIN32__
 #include <conio.h>
 #include <winsock.h>
@@ -35,6 +34,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <unistd.h>
 #endif
 #include "qqclient.h"
 #include "buddy.h"
@@ -45,17 +45,13 @@
 #include "config.h"
 #include "qqsocket.h"
 
-
-#define MSG need_reset = 1; setcolor( color_index ); printf
-
 #define QUN_BUF_SIZE	80*100
 #define BUDDY_BUF_SIZE	80*500
 #define PRINT_BUF_SIZE	80*500*3
 
-
 static char* qun_buf, *buddy_buf, *print_buf;
 static uint to_uid = 0;		//send message to that guy.
-static uint qun_int_uid;		//internal qun id if entered.
+static uint qun_int_uid;	//internal qun id if entered.
 static char input[1024];
 static int enter = 0;
 static qqclient* qq;
@@ -64,7 +60,7 @@ enum{
 	CMD_EXIT = 0, CMD_EXIT2,
 	CMD_SAY, CMD_SAY2,
 	CMD_TO, CMD_TO2,
-	CMD_HELP,
+	CMD_HELP, CMD_HELP2,
 	CMD_STATUS,
 	CMD_ENTER, CMD_ENTER2,
 	CMD_LEAVE, CMD_LEAVE2,
@@ -84,7 +80,7 @@ static char commands[][16]={
 	"exit", "x",
 	"say", "s",
 	"to", "t",
-	"help",
+	"help", "h",
 	"status",
 	"enter", "e",
 	"leave", "l",
@@ -102,25 +98,25 @@ static char commands[][16]={
 };
 
 static char help_msg[]=
-"æ¬¢è¿ä½¿ç”¨ MyQQ2009 ä¸­æ–‡ç‰ˆ\n"
-"è¿™æ˜¯ä¸€ä¸ªä¸ºç¨‹åºå‘˜å’Œç”µè„‘çˆ±å¥½è€…åˆ¶ä½œçš„"
-"è¿·ä½ æ§åˆ¶å°å³æ—¶é€šè®¯è½¯ä»¶,äº«å—å®ƒå§!\n"
-"help:	  æ˜¾ç¤ºä»¥ä¸‹å¸®åŠ©ä¿¡æ¯.\n"
-"add/a:	 æ·»åŠ å¥½å‹. add+QQå·ç .\n"
-"cls/clear: æ¸…å±.\n"
-"view/v:	æ‰€æœ‰å¥½(ç¾¤)å‹åˆ—è¡¨.(æŒ‡å‘å‰æ“ä½œ)\n"
-"who/w:	 åœ¨çº¿å¥½(ç¾¤)å‹åˆ—è¡¨.(æŒ‡å‘å‰æ“ä½œ)\n"
-"qun/q:	 æ˜¾ç¤ºç¾¤åˆ—è¡¨.(æŒ‡å‘å‰æ“ä½œ)\n"
-"to/t:	  æŒ‡å‘æŸä¸ªQQå·æˆ–è€…å‰é¢çš„ç¼–å·.\n"
-"enter/e:   æŒ‡å‘æŸä¸ªç¾¤å·æˆ–è€…å‰é¢çš„ç¼–å·.\n"
-"leave/l:   ç¦»å¼€ç¾¤.(æŒ‡å‘åæ“ä½œ)\n"
-"say/s:	 å‘é€ä¿¡æ¯.(æŒ‡å‘åæ“ä½œ)\n"
-"info/i:	æŸ¥çœ‹ç›¸åº”ä¿¡æ¯.(æŒ‡å‘åæ“ä½œ)\n"
-"update/u:  æ›´æ–°æ‰€æœ‰åˆ—è¡¨.\n"
-"status:	æ”¹å˜çŠ¶æ€(online|away|busy|killme|hidden)\n"
-"verify/r:  è¾“å…¥éªŒè¯ç (éªŒè¯ç åœ¨verifyç›®å½•ä¸‹).\n"
-"change/c:  æ›´æ¢ç”¨æˆ·ç™»é™†.\n"
-"exit/x:	é€€å‡º.\n"
+"»¶Ó­Ê¹ÓÃ MyQQ2009 ÖĞÎÄ°æ\n"
+"ÕâÊÇÒ»¸öÎª³ÌĞòÔ±ºÍµçÄÔ°®ºÃÕßÖÆ×÷µÄÃÔÄã¿ØÖÆÌ¨¼´Ê±Í¨Ñ¶Èí¼ş,ÏíÊÜËü°É!\n"
+"\n"
+"help/h:    ÏÔÊ¾ÒÔÏÂ°ïÖúĞÅÏ¢.\n"
+"add/a:     Ìí¼ÓºÃÓÑ. add+QQºÅÂë.\n"
+"cls/clear: ÇåÆÁ.\n"
+"view/v:    ËùÓĞºÃ(Èº)ÓÑÁĞ±í.(Ö¸ÏòÇ°²Ù×÷)\n"
+"who/w:     ÔÚÏßºÃ(Èº)ÓÑÁĞ±í.(Ö¸ÏòÇ°²Ù×÷)\n"
+"qun/q:     ÏÔÊ¾ÈºÁĞ±í.(Ö¸ÏòÇ°²Ù×÷)\n"
+"to/t:      Ö¸ÏòÄ³¸öQQºÅ»òÕßÇ°ÃæµÄ±àºÅ.\n"
+"enter/e:   Ö¸ÏòÄ³¸öÈººÅ»òÕßÇ°ÃæµÄ±àºÅ.\n"
+"leave/l:   Àë¿ªÈº.(Ö¸Ïòºó²Ù×÷)\n"
+"say/s:     ·¢ËÍĞÅÏ¢.(Ö¸Ïòºó²Ù×÷)\n"
+"info/i:    ²é¿´ÏàÓ¦ĞÅÏ¢.(Ö¸Ïòºó²Ù×÷)\n"
+"update/u:  ¸üĞÂËùÓĞÁĞ±í.\n"
+"status:    ¸Ä±ä×´Ì¬(online|away|busy|killme|hidden)\n"
+"verify/r:  ÊäÈëÑéÖ¤Âë(ÑéÖ¤ÂëÔÚverifyÄ¿Â¼ÏÂ).\n"
+"change/c:  ¸ü»»ÓÃ»§µÇÂ½.\n"
+"exit/x:    ÍË³ö.\n\n"
 ;
 
 #ifdef __WIN32__
@@ -128,15 +124,10 @@ static char help_msg[]=
 #define CCOL_LIGHTBLUE	FOREGROUND_BLUE | FOREGROUND_GREEN
 #define CCOL_REDGREEN	FOREGROUND_RED | FOREGROUND_GREEN
 #define CCOL_NONE		FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE
-static int color_index = CCOL_NONE; 
-static void charcolor( int col )
+#define COLOR_TYPE int
+static void setcolor( COLOR_TYPE col )
 {
-	color_index = col;
-}
-static void setcolor( int col )
-{
-	if(!no_color)
-		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),FOREGROUND_INTENSITY | col);
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),FOREGROUND_INTENSITY | col);
 }
 static void clear_screen()
 {
@@ -144,33 +135,28 @@ static void clear_screen()
 }
 #else
 
-#define CCOL_NONE		"\033[0m"   
-#define CCOL_BLACK	"\033[0;30m"   
-#define CCOL_DARKGRAY	"\033[1;30m"   
-#define CCOL_BLUE		"\033[0;34m"   
-#define CCOL_LIGHTBLUE	"\033[1;34m"   
-#define CCOL_GREEN	"\033[0;32m"   
-#define CCOL_LIGHTGREEN	"\033[1;32m"   
-#define CCOL_CYAN		"\033[0;36m"   
-#define CCOL_LIGHTCYAN	"\033[1;36m"   
-#define CCOL_RED		"\033[0;31m"   
-#define CCOL_LIGHTRED	"\033[1;31m"   
-#define CCOL_PURPLE	"\033[0;35m"   
-#define CCOL_LIGHTPURPLE	"\033[1;35m"   
-#define CCOL_LIGHTBROWN	"\033[0;33m"   
-#define CCOL_YELLOW	"\033[1;33m"   
-#define CCOL_LIGHTGRAY	"\033[0;37m"   
-#define CCOL_WHITE	"\033[1;37m"
-#define CCOL_REDGREEN	CCOL_YELLOW
-static char* color_index = CCOL_NONE;
-static void charcolor( const char* col )
+#define CCOL_NONE           "\033[0m"   
+#define CCOL_BLACK          "\033[0;30m"   
+#define CCOL_DARKGRAY       "\033[1;30m"   
+#define CCOL_BLUE           "\033[0;34m"   
+#define CCOL_LIGHTBLUE      "\033[1;34m"   
+#define CCOL_GREEN          "\033[0;32m"   
+#define CCOL_LIGHTGREEN    	"\033[1;32m"   
+#define CCOL_CYAN	    	"\033[0;36m"   
+#define CCOL_LIGHTCYAN    	"\033[1;36m"   
+#define CCOL_RED	    	"\033[0;31m"   
+#define CCOL_LIGHTRED	    "\033[1;31m"   
+#define CCOL_PURPLE         "\033[0;35m"   
+#define CCOL_LIGHTPURPLE    "\033[1;35m"   
+#define CCOL_LIGHTBROWN     "\033[0;33m"   
+#define CCOL_YELLOW         "\033[1;33m"   
+#define CCOL_LIGHTGRAY      "\033[0;37m"   
+#define CCOL_WHITE          "\033[1;37m"
+#define CCOL_REDGREEN       CCOL_YELLOW
+#define COLOR_TYPE const char *
+static void setcolor( COLOR_TYPE col )
 {
-	color_index = (char*)col;
-}
-static void setcolor( const char* col )
-{
-	if(!no_color)
-		printf( col );
+	printf( col );
 }
 static void clear_screen()
 {
@@ -179,47 +165,64 @@ static void clear_screen()
 }
 #endif
 
-//å«é¢œè‰²æ§åˆ¶ 
-#define RESET_INPUT \
-	if( need_reset ){\
-		charcolor( CCOL_NONE );\
-	if( enter ){ \
-		MSG("In {%s}> ", _TEXT( myqq_get_qun_name( qq, qun_int_uid ) ) ); \
-	}else{ \
-		MSG("To [%s]> ", _TEXT( myqq_get_buddy_name( qq, to_uid ) ) );} \
-	fflush( stdout ); \
-	need_reset = 0;}
-
-
-
-
-#ifdef __WIN32__
-#define _TEXT to_gb_force 
-static char* to_gb_force( char* s )
+static int inputline(char *s, int lim) 
 {
-//	memset( print_buf, 0, PRINT_BUF_SIZE );
-	utf8_to_gb( s, print_buf, PRINT_BUF_SIZE-1 );
-	return print_buf;
-}
-static char* to_utf8( char* s )
-{
-//	memset( print_buf, 0, PRINT_BUF_SIZE );
-	gb_to_utf8( s, print_buf, PRINT_BUF_SIZE-1 );
-	return print_buf;
-}
-
-#else
-#define _TEXT
-#endif
-static int inputline(char *s, int lim) {
 	char *t;
 	int c;
 
 	t = s;
 	while (--lim>1 && (c=getchar()) != EOF && c != '\n')
-		*s++ = c;
-	*s = '\0';
-	return s - t;
+		*t++ = c;
+	*t = '\0';
+#ifdef __WIN32__
+	gb_to_utf8(s, s, lim);
+#endif
+	return strlen(s);
+}
+
+static char * qqstr2uistr(char * str)
+{
+#ifdef __WIN32__
+	utf8_to_gb( str, print_buf, PRINT_BUF_SIZE-1 );
+	return print_buf;
+#else
+	return str;
+#endif
+}
+
+static char * qqstr2gbstr(char * str, char * dst, int len)
+{
+	if(len < 2)
+		return str;
+	utf8_to_gb( str, dst, len - 1 );
+	dst[len - 1] = 0;
+	return dst;
+}
+
+static void print_string(char *str)
+{
+#ifdef __WIN32__
+	printf( str );
+#else
+	char tempstr[1024];
+	gb_to_utf8( str, tempstr, sizeof(tempstr) );
+	printf( tempstr );
+	fflush(stdout);
+#endif
+}
+
+static void puts_color(char * str, COLOR_TYPE color)
+{
+	if( no_color )
+	{
+		puts( qqstr2uistr( str ) );
+	}
+	else
+	{
+		setcolor( color );
+		puts( qqstr2uistr( str ) );
+		setcolor( CCOL_NONE );
+	}
 }
 
 static char* mode_string( int mode )
@@ -322,26 +325,54 @@ static int myqq_get_buddy_info( qqclient* qq, uint uid, char* buf, int size )
 	if( b == NULL )
 		return -2;
 	int len;
-	len = sprintf( buf,	"å¥½å‹æ˜µç§°\t%s\n"
-				"ç”¨æˆ·è´¦å·\t%d\n"
-				"ç­¾å\t\t%s\n"
-				"å¤‡æ³¨\t\t%s\n"
-				"æ‰‹æœº\t\t%s\n"
-				"é‚®ç®±\t\t%s\n"
-				"èŒä¸š\t\t%s\n"
-				"ä¸»é¡µ\t\t%s\n"
-				"æ¯•ä¸šå­¦é™¢\t%s\n"
-				"æ¥è‡ª\t\t%s %s %s\n"
-				"é€šè®¯åœ°å€\t%s\n"
-				"è‡ªæˆ‘ä»‹ç»\t%s\n"
-				"å¤´åƒ\t\t%d\n"
-				"å¹´é¾„\t\t%d\n"
-				"æ€§åˆ«\t\t%s\n"
-				"çŠ¶æ€\t\t%s\n",
-		b->nickname, b->number, b->signature, b->alias, b->mobilephone, 
-		b->email, b->occupation, b->homepage, b->school, b->country, b->province, b->city,
-		b->address, b->brief, b->face, b->age,
-		(b->sex==0x00)?"Male": (b->sex==0x01)?"Female":"Asexual", mode_string(b->status) );
+	char nickname[0x10];
+	char signature[0x40];
+	char alias[0x40];
+	char mobilephone[0x10];
+	char email[0x20];
+	char occupation[0x10];
+	char homepage[0x40];
+	char school[0x40];
+	char country[0x10];
+	char province[0x10];
+	char city[0x10];
+	char address[0x40];
+	char brief[0x100];
+	len = sprintf( buf,	
+				"ºÃÓÑêÇ³Æ\t%s\n"
+				"ÓÃ»§ÕËºÅ\t%u\n"
+				"Ç©Ãû\t\t%s\n"
+				"±¸×¢\t\t%s\n"
+				"ÊÖ»ú\t\t%s\n"
+				"ÓÊÏä\t\t%s\n"
+				"Ö°Òµ\t\t%s\n"
+				"Ö÷Ò³\t\t%s\n"
+				"±ÏÒµÑ§Ôº\t%s\n"
+				"À´×Ô\t\t%s %s %s\n"
+				"Í¨Ñ¶µØÖ·\t%s\n"
+				"×ÔÎÒ½éÉÜ\t%s\n"
+				"Í·Ïñ\t\t%d\n"
+				"ÄêÁä\t\t%d\n"
+				"ĞÔ±ğ\t\t%s\n"
+				"×´Ì¬\t\t%s\n",
+		qqstr2gbstr(b->nickname, nickname, sizeof(nickname)),
+		b->number, 
+		qqstr2gbstr(b->signature, signature, sizeof(signature)),
+		qqstr2gbstr(b->alias, alias, sizeof(alias)),
+		qqstr2gbstr(b->mobilephone, mobilephone, sizeof(mobilephone)),
+		qqstr2gbstr(b->email, email, sizeof(email)), 
+		qqstr2gbstr(b->occupation, occupation, sizeof(occupation)), 
+		qqstr2gbstr(b->homepage, homepage, sizeof(homepage)), 
+		qqstr2gbstr(b->school, school, sizeof(school)), 
+		qqstr2gbstr(b->country, country, sizeof(country)), 
+		qqstr2gbstr(b->province, province, sizeof(province)), 
+		qqstr2gbstr(b->city, city, sizeof(city)),
+		qqstr2gbstr(b->address, address, sizeof(address)), 
+		qqstr2gbstr(b->brief, brief, sizeof(brief)), 
+		b->face, 
+		b->age,
+		(b->sex==0x00)?"Male": (b->sex==0x01)?"Female":"Asexual", 
+		mode_string(b->status) );
 	return len;
 }
 
@@ -378,16 +409,20 @@ static int myqq_get_buddy_list( qqclient* qq, char* buf, int size, char online )
 	buf[0] = 0;
 	pthread_mutex_lock( &qq->buddy_list.mutex );
 	int ln = 1;
+	char alias[0x20];
+	char nickname[0x20];
 	for( i=0; i<qq->buddy_list.count; i++ )
 	{
 		qqbuddy * b = (qqbuddy*)qq->buddy_list.items[i];
 		if( online && b->status == QQ_OFFLINE ) continue;
 		if( *b->alias ){
-			len = sprintf( buf, "%s%-8d%-16d%-16s%-16.64s\n", buf, ln ++, b->number, 
-				mode_string( (int) b->status ), util_escape( b->alias ) );
+			len = sprintf( buf, "%s%-8d%-16u%-16s%-16.64s\n", buf, ln ++, b->number, 
+				mode_string( (int) b->status ), 
+				qqstr2gbstr(util_escape( b->alias ), alias, sizeof(alias)) );
 		}else{
-			len = sprintf( buf, "%s%-8d%-16d%-16s%-16.64s\n", buf, ln ++, b->number, 
-				mode_string( (int) b->status ), util_escape( b->nickname ) );
+			len = sprintf( buf, "%s%-8d%-16u%-16s%-16.64s\n", buf, ln ++, b->number, 
+				mode_string( (int) b->status ), 
+				qqstr2gbstr(util_escape( b->nickname ), nickname, sizeof(nickname)) );
 		}
 		if( len + 80 > size ) break;
 	}
@@ -406,12 +441,15 @@ static int myqq_get_qun_list( qqclient* qq, char* buf, int size )
 	int i, len = 0, ln=1;
 	//avoid editing the array
 	buf[0] = 0;
+	char name[0x20];
+
 	pthread_mutex_lock( &qq->qun_list.mutex );
 	for( i=0; i<qq->qun_list.count; i++ )
 	{
 		qqqun * q = (qqqun *)qq->qun_list.items[i];
-		len = sprintf( buf, "%s%-8d%-16d%-16d%-16.64s\n", buf, ln ++, q->number, 
-			q->ext_number, util_escape( q->name ) );
+		len = sprintf( buf, "%s%-8d%-16u%-16u%-16.64s\n", buf, ln ++, q->number, 
+			q->ext_number, 
+			qqstr2gbstr(util_escape( q->name ), name, sizeof(name)) );
 		if( len + 80 > size ) break;
 	}
 	pthread_mutex_unlock( &qq->qun_list.mutex );
@@ -431,13 +469,16 @@ static int myqq_get_qun_member_list( qqclient* qq, uint int_uid, char* buf, int 
 	//Hope the Qun won't get removed while we are using it. 
 	int i, len = 0, ln = 1;
 	buf[0] = 0;
+	char nickname[0x20];
+
 	pthread_mutex_lock( &q->member_list.mutex );
 	for( i=0; i<q->member_list.count; i++ )
 	{
 		qunmember * m = (qunmember *)q->member_list.items[i];
 		if( online && m->status == QQ_OFFLINE ) continue;
-		len = sprintf( buf, "%s%-8d%-16d%-16s%-16.64s\n", buf, ln++, m->number, 
-			(m->role&1)?"Admin":"Fellow", util_escape( m->nickname ) );
+		len = sprintf( buf, "%s%-8d%-16u%-16s%-16.64s\n", buf, ln++, m->number, 
+			(m->role&1)?"Admin":"Fellow", 
+			qqstr2gbstr(util_escape( m->nickname ), nickname, sizeof(nickname)) );
 		if( len + 80 > size )
 			break;
 	}
@@ -459,28 +500,59 @@ static int myqq_get_qun_info( qqclient* qq, uint int_uid, char* buf, int size )
 
 	if( q == NULL )
 		return -2;
-	len = sprintf( buf, 	"åç§°\t\t%s\n"
-				"å†…éƒ¨å·ç \t%d\n"
-				"ç¾¤å·ç \t\t%d\n"
-				"ç¾¤ç±»å‹\t\t%s\n"
-				"åŠ å…¥éªŒè¯\t%s\n"
-				"ç¾¤åˆ†ç±»\t\t%s\n"
-				"åˆ›å»ºäºº\t\t%d\n"
-				"æˆå‘˜æ•°é‡\t%d\n"
-				"ç¾¤çš„ç®€ä»‹\n%s\n"
-				"ç¾¤çš„å…¬å‘Š\n%s\n",
-		q->name, q->number, q->ext_number, (q->type==0x01)?"Normal":"Special",
-		(q->auth_type==0x01)?"No": (q->auth_type==0x02)?"Yes":
-			(q->auth_type==0x03)?"RejectAll":"Unknown",
+
+	char name[0x10];
+	char intro[0x100];
+	char ann[0x100];
+
+	len = sprintf( buf, 	
+				"Ãû³Æ\t\t%s\n"
+				"ÄÚ²¿ºÅÂë\t%u\n"
+				"ÈººÅÂë\t\t%u\n"
+				"ÈºÀàĞÍ\t\t%s\n"
+				"¼ÓÈëÑéÖ¤\t%s\n"
+				"Èº·ÖÀà\t\t%s\n"
+				"´´½¨ÈË\t\t%u\n"
+				"³ÉÔ±ÊıÁ¿\t%d\n"
+				"ÈºµÄ¼ò½é\n%s\n"
+				"ÈºµÄ¹«¸æ\n%s\n",
+		qqstr2gbstr(q->name, name, sizeof(name)),
+		q->number, 
+		q->ext_number, 
+		(q->type==0x01)?"Normal":"Special",
+		(q->auth_type==0x01)?"No": (q->auth_type==0x02)?"Yes": (q->auth_type==0x03)?"RejectAll":"Unknown",
 		q->category > 3 ? cate_str[3] : cate_str[(int)q->category],
-		q->owner, q->member_list.count, q->intro, q->ann );
+		q->owner, 
+		q->member_list.count, 
+		qqstr2gbstr(q->intro, intro, sizeof(intro)),  
+		qqstr2gbstr(q->ann, ann, sizeof(ann))  
+		);
 	return len;
 }
 
-//å«é¢œè‰²æ§åˆ¶
+void reset_input()
+{
+	if( need_reset )
+	{
+		char * pstr;
+		if( enter ) 
+		{
+			pstr = myqq_get_qun_name( qq, qun_int_uid );
+			printf( "In {%s}> ", qqstr2uistr(pstr) );
+		}
+		else
+		{
+			pstr = myqq_get_buddy_name( qq, to_uid );
+			printf( "To [%s]> ", qqstr2uistr(pstr) );
+		}
+		fflush( stdout );
+		need_reset = 0;
+	}
+}
+
+//º¬ÑÕÉ«¿ØÖÆ
 void buddy_msg_callback ( qqclient* qq, uint uid, time_t t, char* msg )
 {
-	charcolor( CCOL_LIGHTBLUE );	//red color
 	char timestr[12];
 	char msgstr[64];
 	struct tm * timeinfo;
@@ -499,26 +571,25 @@ void buddy_msg_callback ( qqclient* qq, uint uid, time_t t, char* msg )
 			sscanf( p, "%d", &ln );
 			sprintf( msgstr, "\n%d)%s[", ln, timestr );
 			strcat( msgstr, nick );
-			strcat( msgstr, "]\n\t" );//äºŒæ¬¡ä¿®æ”¹ 
-			MSG( _TEXT( msgstr ) );
-			puts( _TEXT( msg ) );
-			RESET_INPUT
+			strcat( msgstr, "]\n\t" );//¶ş´ÎĞŞ¸Ä 
+			print_string( msgstr );
+			puts_color( msg, CCOL_LIGHTBLUE );	//red color
+			reset_input();
 		}
 	}else{
 		sprintf( msgstr, "\n%s[", timestr );
 		strcat( msgstr, nick );
-		strcat( msgstr, "]\n\t" );//äºŒæ¬¡ä¿®æ”¹ 
-		MSG( _TEXT( msgstr ) );
-		puts( _TEXT( msg ) );
-		RESET_INPUT
+		strcat( msgstr, "]\n\t" );//¶ş´ÎĞŞ¸Ä 
+		print_string( msgstr );
+		puts_color( msg, CCOL_LIGHTBLUE );	//red color
+		reset_input();
 	}
 }
 
-//å«é¢œè‰²æ§åˆ¶
+//º¬ÑÕÉ«¿ØÖÆ
 void qun_msg_callback ( qqclient* qq, uint uid, uint int_uid,
 	time_t t, char* msg )
 {
-	charcolor( CCOL_REDGREEN );	//red color
 	char timestr[12];
 	char msgstr[64];
 	char* qun_name = myqq_get_qun_name( qq, int_uid );
@@ -540,42 +611,162 @@ void qun_msg_callback ( qqclient* qq, uint uid, uint int_uid,
 			strcat( msgstr, qun_name );
 			strcat( msgstr, "}[" );
 			strcat( msgstr, nick );
-			strcat( msgstr, "]\n\t" );//äºŒæ¬¡ä¿®æ”¹
-			MSG( _TEXT( msgstr ) );
-			puts( _TEXT( msg ) );
-			RESET_INPUT
+			strcat( msgstr, "]\n\t" );//¶ş´ÎĞŞ¸Ä
+			print_string( msgstr );
+			puts_color( msg, CCOL_REDGREEN );
+			reset_input();
 		}
 	}else{
 		sprintf( msgstr, "\n%s{", timestr );
 		strcat( msgstr, qun_name );
 		strcat( msgstr, "}[" );
 		strcat( msgstr, nick );
-		strcat( msgstr, "]\n\t" );//äºŒæ¬¡ä¿®æ”¹
-		MSG( _TEXT( msgstr ) );
-		puts( _TEXT( msg ) );
-		RESET_INPUT
+		strcat( msgstr, "]\n\t" );//¶ş´ÎĞŞ¸Ä
+		print_string( msgstr );
+		puts_color( msg, CCOL_REDGREEN );
+		reset_input();
 	}
 }
 
 #ifndef __WIN32__
-int read_password(char   *lineptr )   
-{   
-	struct   termios   old,   new;   
-	int   nread;	
-	/*   Turn   echoing   off   and   fail   if   we   can't.   */   
-	if   (tcgetattr   (fileno   (stdout),   &old)   !=   0)   
-		return   -1;   
-	new   =   old;   
-	new.c_lflag   &=   ~ECHO;   
-	if   (tcsetattr   (fileno   (stdout),   TCSAFLUSH,   &new)   !=   0)   
-		return   -1;
-	/*   Read   the   password.   */   
-	nread   =   scanf   ("%31s", lineptr);	
-	/*   Restore   terminal.   */   
-	(void)   tcsetattr   (fileno   (stdout),   TCSAFLUSH,   &old); 	
-	return   nread;   
+
+int getch(void) 
+{
+    char buf = 0;
+    struct termios old = {0};
+
+    if (tcgetattr(0, &old) < 0)
+        perror("tcsetattr()"); 
+	
+    old.c_lflag &= ~ICANON;
+    old.c_lflag &= ~ECHO;
+    old.c_cc[VMIN] = 1;
+    old.c_cc[VTIME] = 0;
+    if (tcsetattr(0, TCSANOW, &old) < 0)
+        perror("tcsetattr ICANON");
+
+    if (read(0, &buf, 1) < 0)
+        perror ("read()");
+
+    old.c_lflag |= ICANON;
+    old.c_lflag |= ECHO;
+    if (tcsetattr(0, TCSADRAIN, &old) < 0)
+        perror ("tcsetattr ~ICANON");
+
+    return (buf);
 }
+
 #endif
+
+char* read_inputstr(char *pass, int maxlen, int password) 
+{
+    int ch;
+    int passlen = 0;
+
+    while (passlen < maxlen - 1)
+    {
+        ch = getch();
+        if (ch == '\r' || ch == '\n')
+        {
+            fprintf(stderr, "\n");
+            break;
+        }
+		
+        if (ch != '\b')
+        {
+            pass[passlen++] = ch;
+			if(password)
+				fprintf(stderr, "*");
+			else
+				fputc(ch, stderr);
+
+            continue;
+        }
+		
+        if (passlen >= 1)
+        {
+            passlen--;
+            fprintf(stderr, "\b \b");
+        }
+        else
+        {
+            fprintf(stderr, "\007");
+        }
+    }
+	
+    pass[passlen] = '\0';
+	
+    return pass;    
+}
+
+uint read_uid()
+{
+	char idstr[0x10];
+	int idstrlen = sizeof(idstr);
+
+    int ch;
+    int ilen = 0;
+	
+    while (ilen < idstrlen - 1)
+    {
+        ch = getch();
+        if (ch == '\r' || ch == '\n')
+        {
+            fprintf(stderr, "\n");
+            break;
+        }
+		
+        if (ch != '\b')
+        {
+			if(ch >= '0' && ch <= '9')
+			{
+	            fputc(ch, stderr);
+				idstr[ilen++] = ch;
+				continue;
+			}
+			else
+			{
+				return 0;
+			}
+        }
+		
+        if (ilen >= 1)
+        {
+            ilen--;
+            fprintf(stderr, "\b \b");
+        }
+        else
+        {
+            fprintf(stderr, "\007");
+        }
+    }
+	
+	if(ilen > 10)
+		return 0;
+
+    idstr[ilen] = '\0';
+
+	return atoi(idstr);
+}
+
+char read_select()
+{
+    char ch;
+	
+    for(;;)
+	{
+        ch = getch();
+		if('y' == ch || 'n' == ch)
+		{
+			fputc(ch, stderr);
+			return ch;
+		}
+		if('\r' == ch || '\n' == ch)
+			return 'n';
+    }
+	
+	return 0;
+}
 
 int main(int argc, char** argv)
 {
@@ -593,49 +784,34 @@ int main(int argc, char** argv)
 	NEW( print_buf, PRINT_BUF_SIZE );
 	NEW( qq, sizeof(qqclient) );
 	if( !qun_buf || !buddy_buf || !print_buf || !qq ){
-		MSG("no enough memory.");
+		printf("no enough memory.\n");
 		return -1;
 	}
 	//login
 	clear_screen();
+
 DO_LOGIN:
-	if( argc<3 )
+	if( argc < 3 )
 	{
 		uint uid;
 		char password[32];
-		MSG(_TEXT("QQè´¦å·:"));
-		scanf("%u", &uid );
-		MSG(_TEXT("QQå¯†ç :"));
-#ifdef __WIN32__
-		uint pwi;
-		char pswd;
-		for(pwi=0;pwi<=32;pwi++)
+		print_string("QQÕËºÅ:");
+		uid = read_uid();
+
+		if( 0 == uid )
 		{
-			pswd = getch(); //é€æ¬¡èµ‹å€¼,ä½†ä¸å›æ˜¾ 
-			if(pswd == '\x0d')//å›è½¦åˆ™ç»ˆæ­¢å¾ªç¯
-			{
-				password[pwi] ='\0';//getchéœ€è¦è¡¥'\0'ä»¥é€‚åˆåŸç¨‹åº 
-				break;
-			}
-			if(pswd == '\x08')//åˆ é™¤é”®åˆ™é‡è¾“QQå¯†ç  
-			{
-				if( pwi>0 ) pwi=-1;
-				MSG(_TEXT("\nè¯·é‡è¾“QQå¯†ç :"));
-				continue;
-			}
-			printf("*"); //ä»¥æ˜Ÿå·ä»£æ›¿å­—ç¬¦
-			password[pwi] =pswd;
+			print_string("\nÊäÈë´íÎó£¬ÖØĞÂÊäÈë¡£\n");
+			goto DO_LOGIN;
 		}
-#else	//LINUX
-		read_password( password );
-#endif
-		MSG(_TEXT("\næ˜¯å¦éšèº«ç™»é™†ï¼Ÿ(y/n)"));
-		scanf("%s", input );
-		//check if failed here...
+
+		print_string("QQÃÜÂë:");
+		read_inputstr( password, sizeof(password), 1 );
+
+		print_string("ÊÇ·ñÒşÉíµÇÂ½£¿(y/n)");
+		char hidechar = read_select();
 		qqclient_create( qq, uid, password );
-		qq->mode = *input=='y' ? QQ_HIDDEN : QQ_ONLINE;
+		qq->mode = hidechar=='y' ? QQ_HIDDEN : QQ_ONLINE;
 		qqclient_login( qq );
-		scanf("%c", input ); //If I don't add this, it will display '>' twice.
 	}else{
 		//check if failed here...
 		qqclient_create( qq, atoi(argv[1]), argv[2] );
@@ -644,54 +820,50 @@ DO_LOGIN:
 		qqclient_login( qq );
 		argc = 1;
 	}
-	MSG(_TEXT("ç™»é™†ä¸­...\n"));
-	for( ; qq->process != P_LOGIN; 
-		qqclient_wait( qq, 1 ) /*wait one second*/ ){
+	print_string("\nµÇÂ½ÖĞ...\n");
+	for( ; qq->process != P_LOGIN; qqclient_wait( qq, 1 ) )
+	{
 		switch( qq->process ){
 		case P_LOGGING:
 			continue;
 		case P_VERIFYING:
-			MSG(_TEXT("è¯·è¾“å…¥éªŒè¯ç ï¼ˆéªŒè¯ç ç›®å½•ä¸‹ï¼‰: "));
-			scanf( "%s", input );
+			print_string("ÇëÊäÈëÑéÖ¤Âë£¨ÑéÖ¤ÂëÄ¿Â¼ÏÂ£©: ");
+			read_inputstr( input, sizeof(input) - 1, 0 );
 			qqclient_verify( qq, input );
 			break;
 		case P_ERROR:
-			MSG(_TEXT("ç½‘ç»œé”™è¯¯.\n"));
+			print_string("ÍøÂç´íÎó.\n");
 			qqclient_logout( qq );
 			qqclient_cleanup( qq );
 			goto DO_LOGIN;
 		case P_DENIED:
-			MSG(_TEXT("æ‚¨çš„QQéœ€è¦æ¿€æ´»(http://jihuo.qq.com).\n"));
-#ifdef __WIN32__
-			ShellExecute(NULL,"open","http://jihuo.qq.com/",NULL,NULL,SW_SHOWNORMAL);
-#endif
+			print_string("ÄúµÄQQĞèÒª¼¤»î(http://jihuo.qq.com).\n");
 			qqclient_logout( qq );
 			qqclient_cleanup( qq );
 			goto DO_LOGIN;
 		case P_WRONGPASS:
-			MSG(_TEXT("æ‚¨çš„å¯†ç é”™è¯¯.\n"));
+			print_string("ÄúµÄÃÜÂë´íÎó.\n");
 			qqclient_logout( qq );
 			qqclient_cleanup( qq );
 			goto DO_LOGIN;
 		default:
-			MSG(_TEXT("æœªçŸ¥é”™è¯¯.\n"));
+			print_string("Î´Öª´íÎó.\n");
 		}
-		
 	}
 	/* Success */
-	MSG( _TEXT(help_msg) );
+	print_string(help_msg);
 	while( qq->process != P_INIT ){
-		RESET_INPUT
-		len = inputline( input, 1023 );
+		reset_input();
+		len = inputline( input, sizeof(input) - 1 );
 		if( len < 1 ) continue;
 		char* sp = strchr( input, ' ' );
 		if( sp ){
 			*sp = '\0';
-			strncpy( cmd, input, 16-1 );
-			strncpy( arg, sp+1, 1008-1 );
+			strncpy( cmd, input, sizeof(cmd) - 1 );
+			strncpy( arg, sp+1, sizeof(arg) - 1 );
 			*sp = ' ';
 		}else{
-			strncpy( cmd, input, 16-1 );
+			strncpy( cmd, input, sizeof(cmd) - 1 );
 			arg[0] = '\0';
 		}
 		need_reset = 1;
@@ -705,7 +877,7 @@ SELECT_CMD:
 		{
 			if( enter )
 			{
-				MSG(_TEXT("æ‚¨åœ¨ä¸€ä¸ªç¾¤ä¸­, ä½ å¯ä»¥å’Œä»»ä½•äººè°ˆè¯.\n"));
+				print_string("ÄúÔÚÒ»¸öÈºÖĞ, Äã¿ÉÒÔºÍÈÎºÎÈËÌ¸»°.\n");
 				break;
 			}
 			int n = atoi( arg );
@@ -716,18 +888,18 @@ SELECT_CMD:
 				if( p )
 				{
 					sscanf( p, "%u%u", &n, &to_uid );
-					sprintf( print_buf, "æ‚¨å°†å’Œ %s è¿›è¡Œè°ˆè¯\n", myqq_get_buddy_name(qq, to_uid) );
-					MSG( _TEXT(print_buf) );
+					sprintf( print_buf, "Äú½«ºÍ %s ½øĞĞÌ¸»°\n", myqq_get_buddy_name(qq, to_uid) );
+					print_string(print_buf);
 					break;
 				}
 			}else{
 				to_uid = n;
-				sprintf( print_buf, "æ‚¨å°†å’Œ %s è¿›è¡Œè°ˆè¯\n", myqq_get_buddy_name(qq, to_uid) );
-				MSG( _TEXT(print_buf) );
+				sprintf( print_buf, "Äú½«ºÍ %s ½øĞĞÌ¸»°\n", myqq_get_buddy_name(qq, to_uid) );
+				print_string(print_buf);
 				break;
 			}
-			sprintf( print_buf, "to: %s æ²¡æœ‰æ‰¾åˆ°.\n", arg );
-			MSG( _TEXT(print_buf) );
+			sprintf( print_buf, "to: %s Ã»ÓĞÕÒµ½.\n", arg );
+			print_string(print_buf);
 			break;
 		}
 		case CMD_SAY:
@@ -735,25 +907,16 @@ SELECT_CMD:
 		{
 			if( enter )
 			{
-#ifdef	__WIN32__
-				if( myqq_send_im_to_qun( qq, qun_int_uid, to_utf8(arg), 1 ) < 0 ){
-#else
 				if( myqq_send_im_to_qun( qq, qun_int_uid, arg, 1 ) < 0 ){
-#endif
-					MSG(_TEXT("è¶…æ—¶: æ‚¨çš„æ¶ˆæ¯å‘é€å¤±è´¥.\n"));
+					print_string("³¬Ê±: ÄúµÄÏûÏ¢·¢ËÍÊ§°Ü.\n");
 				}
 			}else{
-				if( to_uid == 0 )
-				{
-					MSG(_TEXT("say: å’Œè°è°ˆè¯?\n"));
+				if( to_uid == 0 ){
+					print_string("say: ºÍË­Ì¸»°?\n");
 					break;
 				}
-#ifdef	__WIN32__
-				if( myqq_send_im_to_buddy( qq, to_uid, to_utf8(arg), 1 ) < 0 ){
-#else
 				if( myqq_send_im_to_buddy( qq, to_uid, arg, 1 ) < 0 ){
-#endif
-					MSG(_TEXT("è¶…æ—¶: æ‚¨çš„æ¶ˆæ¯å‘é€å¤±è´¥.\n"));
+					print_string("³¬Ê±: ÄúµÄÏûÏ¢·¢ËÍÊ§°Ü.\n");
 				}
 			}
 			break;
@@ -762,7 +925,8 @@ SELECT_CMD:
 		case CMD_EXIT2:
 			goto end;
 		case CMD_HELP:
-			MSG( _TEXT(help_msg) );
+		case CMD_HELP2:
+			print_string(help_msg);
 			break;
 		case CMD_CLS:
 		case CMD_CLS2:
@@ -780,7 +944,7 @@ SELECT_CMD:
 			else if( strcmp( arg, "busy") == 0 )
 				qqclient_change_status( qq, QQ_BUSY );
 			else{
-				MSG(_TEXT("æœªçŸ¥çŠ¶æ€\n") );
+				print_string("Î´Öª×´Ì¬\n");
 			}
 			break;
 		case CMD_ENTER:
@@ -794,39 +958,39 @@ SELECT_CMD:
 				if( p )
 				{
 					sscanf( p, "%u%u", &n, &qun_int_uid );
-					sprintf( print_buf, "æ‚¨åœ¨ %s ç¾¤ä¸­\n", myqq_get_qun_name( qq, qun_int_uid) );
-					MSG( _TEXT(print_buf) );
+					sprintf( print_buf, "ÄúÔÚ %s ÈºÖĞ\n", myqq_get_qun_name( qq, qun_int_uid) );
+					print_string(print_buf);
 					enter = 1;
 					break;
 				}
 			}else{
 				qun_int_uid = n;
-				sprintf( print_buf, "æ‚¨åœ¨ %s ç¾¤ä¸­\n", myqq_get_qun_name( qq, qun_int_uid) );
-				MSG( _TEXT(print_buf) );
+				sprintf( print_buf, "ÄúÔÚ %s ÈºÖĞ\n", myqq_get_qun_name( qq, qun_int_uid) );
+				print_string(print_buf);
 				enter = 1;
 				break;
 			}
-			sprintf( print_buf, "enter: %s æ²¡æœ‰æ‰¾åˆ°.\n", arg );
-			MSG( _TEXT(print_buf) );
+			sprintf( print_buf, "enter: %s Ã»ÓĞÕÒµ½.\n", arg );
+			print_string(print_buf);
 			break;
 		}
 		case CMD_LEAVE:
 		case CMD_LEAVE2:
 			if( !enter )
 			{
-				MSG(_TEXT("æ‚¨æ²¡æœ‰è¿›å…¥ç¾¤.\n"));
+				print_string("ÄúÃ»ÓĞ½øÈëÈº.\n");
 				break;
 			}
 			enter = 0;
-			sprintf( print_buf, "ç¦»å¼€ %s. æ‚¨å°†å’Œ %s è¿›è¡Œè°ˆè¯\n", 
+			sprintf( print_buf, "Àë¿ª %s. Äú½«ºÍ %s ½øĞĞÌ¸»°\n", 
 				myqq_get_qun_name( qq, qun_int_uid ), myqq_get_buddy_name( qq, to_uid ) );
-			MSG( _TEXT(print_buf) );
+			print_string(print_buf);
 			break;
 		case CMD_QUN:
 		case CMD_QUN2:
 		{
 			myqq_get_qun_list( qq, qun_buf, QUN_BUF_SIZE );
-			MSG( _TEXT( qun_buf ) );
+			print_string( qun_buf );
 			break;
 		}
 		case CMD_UPDATE:
@@ -834,9 +998,9 @@ SELECT_CMD:
 			qun_update_all( qq );
 			buddy_update_list( qq );
 			group_update_list( qq );
-			MSG(_TEXT("æ›´æ–°ä¸­...\n"));
+			print_string("¸üĞÂÖĞ...\n");
 			if( qqclient_wait( qq, 20 )<0 ){
-				MSG(_TEXT("æ›´æ–°è¶…æ—¶.\n"));
+				print_string("¸üĞÂ³¬Ê±.\n");
 			}
 			break;
 		case CMD_INFO:
@@ -846,29 +1010,29 @@ SELECT_CMD:
 			{
 				if( to_uid==0 )
 				{
-					MSG(_TEXT("è¯·å…ˆé€‰æ‹©ä¸€ä¸ªå¥½å‹.\n"));
+					print_string("ÇëÏÈÑ¡ÔñÒ»¸öºÃÓÑ.\n");
 				}else{
 					char* buf = (char*)malloc(1024*4);	//4kb enough!
 					//update single buddy info
 					buddy_update_info( qq, buddy_get( qq, to_uid, 0 ) );
 					if( qqclient_wait( qq, 10 ) < 0 ){
-						MSG( _TEXT("è·å–å¥½å‹è¯¦ç»†èµ„æ–™å¤±è´¥ã€‚\n") );
+						print_string("»ñÈ¡ºÃÓÑÏêÏ¸×ÊÁÏÊ§°Ü¡£\n");
 					}
 					if( myqq_get_buddy_info( qq, to_uid, buf, 1024*4 ) < 0 ){
-						sprintf( print_buf, "è·å– %s çš„ä¿¡æ¯å¤±è´¥\n", myqq_get_buddy_name( qq, to_uid ) );
-						MSG( _TEXT(print_buf) );
+						sprintf( print_buf, "»ñÈ¡ %s µÄĞÅÏ¢Ê§°Ü\n", myqq_get_buddy_name( qq, to_uid ) );
+						print_string(print_buf);
 					}else{
-						MSG( _TEXT( buf ) );
+						print_string( buf );
 					}
 					free(buf);
 				}
 			}else{
 				char* buf = (char*)malloc(1024*4);	//4kb enough!
 				if( myqq_get_qun_info( qq, qun_int_uid, buf, 1024*4 ) < 0 ){
-					sprintf( print_buf, "è·å– %s çš„ä¿¡æ¯å¤±è´¥\n", myqq_get_qun_name( qq, qun_int_uid ) );
-					MSG( _TEXT(print_buf) );
+					sprintf( print_buf, "»ñÈ¡ %s µÄĞÅÏ¢Ê§°Ü\n", myqq_get_qun_name( qq, qun_int_uid ) );
+					print_string(print_buf);
 				}else{
-					MSG( _TEXT( buf ) );
+					print_string( buf );
 				}
 				free(buf);
 			}
@@ -880,10 +1044,10 @@ SELECT_CMD:
 			{
 				myqq_get_qun_member_list( qq, qun_int_uid, buddy_buf,
 					BUDDY_BUF_SIZE, 0 );
-				MSG( _TEXT( buddy_buf ) );
+				print_string( buddy_buf );
 			}else{
 				myqq_get_buddy_list( qq, buddy_buf, BUDDY_BUF_SIZE, 0 );
-				MSG( _TEXT( buddy_buf ) );
+				print_string( buddy_buf );
 			}
 			break;
 		case CMD_WHO:
@@ -892,10 +1056,10 @@ SELECT_CMD:
 			{
 				myqq_get_qun_member_list( qq, qun_int_uid, buddy_buf,
 					QUN_BUF_SIZE, 1 );
-				MSG( _TEXT( buddy_buf ) );
+				print_string( buddy_buf );
 			}else{
 				myqq_get_buddy_list( qq, buddy_buf, QUN_BUF_SIZE, 1 );
-				MSG( _TEXT( buddy_buf ) );
+				print_string( buddy_buf );
 			}
 			break;
 		case CMD_CHANGE:
@@ -911,8 +1075,8 @@ SELECT_CMD:
 		case CMD_ADD:
 		case CMD_ADD2:
 		{
-			sprintf( print_buf, "æ·»åŠ [%d]çš„é™„è¨€ï¼ˆé»˜è®¤ç©ºï¼‰ï¼š", atoi(arg) );
-			MSG( _TEXT(print_buf) );
+			sprintf( print_buf, "Ìí¼Ó[%d]µÄ¸½ÑÔ£¨Ä¬ÈÏ¿Õ£©£º", atoi(arg) );
+			print_string(print_buf);
 			inputline( input, 50 );
 			qqclient_add( qq, atoi(arg), input );
 			break;
@@ -925,7 +1089,7 @@ SELECT_CMD:
 			if( lastcmd && *input )
 			{
 				cmdid = lastcmd;
-				strncpy( arg, input, 1008-1 );
+				strncpy( arg, input, sizeof(arg)  - 1 );
 				*input = 0;
 				goto SELECT_CMD;
 			}
@@ -938,7 +1102,7 @@ end:
 	qqclient_cleanup( qq );
 	config_end();
 	DEL( qq );
-	MSG(_TEXT("ç¦»å¼€.\n"));
+	print_string("Àë¿ª¡£\n");
 	DEL( qun_buf );
 	DEL( buddy_buf );
 	DEL( print_buf );

@@ -3,20 +3,13 @@
 
 #include <time.h>
 
-#ifdef __WIN32__
-
-#define STDCALL __stdcall
-#ifdef LIBQQLIB
-#define EXPORT __declspec(dllexport) STDCALL 
-#else
-#define EXPORT __declspec(dllimport) STDCALL
-#endif
-
-#else
 #define EXPORT 
-#endif
 
 struct qqclient;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 EXPORT void libqq_init();
 EXPORT void libqq_cleanup();
@@ -39,5 +32,9 @@ EXPORT void libqq_getextrainfo( struct qqclient* qq, uint uid );
 EXPORT void libqq_addbuddy( struct qqclient* qq, uint uid, char* msg );
 EXPORT void libqq_delbuddy( struct qqclient* qq, uint uid );
 EXPORT void libqq_sethttpproxy( struct qqclient* qq, char* ip, ushort port );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

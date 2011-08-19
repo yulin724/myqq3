@@ -13,11 +13,11 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include <pthread.h>
 #include "qqdef.h"
 #include "debug.h"
 #include "memory.h"
 #include "loop.h"
+#include "commplatform.h"
 
 
 int loop_create( loop* l, int size, loop_delete_func del )
@@ -26,17 +26,17 @@ int loop_create( loop* l, int size, loop_delete_func del )
 	l->head = l->tail = 0;
 	l->del_func = del;
 	pthread_mutex_init( &l->mutex, NULL );
-	l->items = malloc( l->size*sizeof(void*) );
+	l->items = (void **)malloc( l->size*sizeof(void*) );
 	assert( l->items != NULL );
 	return 0;
 }
 
-//åŠ åˆ°å°¾
+//¼Óµ½Î²
 int loop_push_to_tail( loop* l, void* data )
 {
 	pthread_mutex_lock( &l->mutex );
 	if( (l->tail+1)%l->size == l->head ){
-	//	DBG("loop is full. size:%d", l->size);
+	//	DBG (("loop is full. size:%d", l->size));
 		if( l->del_func )
 			l->del_func( l->items[l->head] );
 		l->head = (l->head+1)%l->size;
@@ -48,7 +48,7 @@ int loop_push_to_tail( loop* l, void* data )
 	return 0;
 }
 
-//åŠ åˆ°å¤´
+//¼Óµ½Í·
 int loop_push_to_head( loop* l, void* data )
 {
 	pthread_mutex_lock( &l->mutex );
@@ -101,7 +101,7 @@ void loop_remove( loop* l, void* data )
 		if( l->items[i] == data ){
 			l->tail = (l->size+l->tail-1)%l->size;
 			assert( l->tail >= 0 );
-			//ä»Žiå¼€å§‹ï¼Œæ•°æ®å¾€å‰ç§»åŠ¨
+			//´Ói¿ªÊ¼£¬Êý¾ÝÍùÇ°ÒÆ¶¯
 			for( ; i!=l->tail; i=(i+1)%l->size )
 				l->items[i] = l->items[(i+1)%l->size];
 			break;

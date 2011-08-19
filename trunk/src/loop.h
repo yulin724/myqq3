@@ -1,7 +1,7 @@
 #ifndef _LOOP_H
 #define _LOOP_H
 
-#include <pthread.h>
+#include "commplatform.h"
 
 typedef int (*loop_search_func)(const void *, const void *);
 typedef void (*loop_delete_func)(const void *);
@@ -13,7 +13,7 @@ typedef struct loop{
 	int		tail;
 	char		str[5];
 	void**		items;
-	loop_delete_func	del_func;	//æº¢å‡ºæ—¶ï¼Œæ˜¯å¦åˆ é™¤
+	loop_delete_func	del_func;	//Òç³öÊ±£¬ÊÇ·ñÉ¾³ı
 }loop;
 
 int loop_create( loop* l, int size, loop_delete_func del );

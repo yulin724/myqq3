@@ -25,12 +25,12 @@
 
 static int qun_searcher( const void* p, const void* v )
 {
-	return ( ((qqqun*)p)->number == (int)v );
+	return ( ((qqqun*)p)->number == (uint)v );
 }
 
 static int member_searcher( const void* p, const void* v )
 {
-	return ( ((qunmember*)p)->number == (int)v );
+	return ( ((qunmember*)p)->number == (uint)v );
 }
 
 
@@ -39,19 +39,19 @@ qunmember* qun_member_get( struct qqclient* qq, qqqun* q, uint number, int creat
 	if( !number )
 		return NULL;
 	qunmember* m;
-	m = list_search( &q->member_list, (void*)number, member_searcher );
+	m = (qunmember*)list_search( &q->member_list, (void*)number, member_searcher );
 	//if not found, m must be NULL
 	if( !m && create ){
 		NEW( m, sizeof( qunmember ) );
 		if( !m ){
-			DBG("Fatal error: qunmember not allocated"); 
+			DBG (("Fatal error: qunmember not allocated")); 
 			return m;
 		}
 		m->number = number;
 		sprintf( m->nickname, "%u", number );
 		if( list_append( &q->member_list, (void*)m )<0 ){
 			DEL( m );
-			DBG("can't add it to member_list");
+			DBG (("can't add it to member_list"));
 		}
 	}
 	return m;
@@ -60,7 +60,7 @@ qunmember* qun_member_get( struct qqclient* qq, qqqun* q, uint number, int creat
 void qun_member_remove( struct qqclient* qq, qqqun* q, uint number )
 {
 	qunmember* m;
-	m = list_search( &q->member_list, (void*)number, member_searcher );
+	m = (qunmember*)list_search( &q->member_list, (void*)number, member_searcher );
 	if( m ){
 		list_remove( &q->member_list, m );
 	}
@@ -71,12 +71,12 @@ qqqun* qun_get( struct qqclient* qq, uint number, int create )
 	if( !number )
 		return NULL;
 	qqqun* q;
-	q = list_search( &qq->qun_list, (void*)number, qun_searcher );
+	q = (qqqun*)list_search( &qq->qun_list, (void*)number, qun_searcher );
 	//if not found, b must be NULL
 	if( !q && create ){
 		NEW( q, sizeof( qqqun ) );
 		if( !q ){
-			DBG("Fatal error: qqqun not allocated"); 
+			DBG (("Fatal error: qqqun not allocated")); 
 			return q;
 		}
 		q->number = number;
@@ -98,17 +98,17 @@ qqqun* qun_get( struct qqclient* qq, uint number, int create )
 
 static int qun_ext_searcher( const void* p, const void* v )
 {
-	return ( ((qqqun*)p)->ext_number == (int)v );
+	return ( ((qqqun*)p)->ext_number == (uint)v );
 }
 qqqun* qun_get_by_ext( struct qqclient* qq, uint ext_number )
 {
-	return list_search( &qq->qun_list, (void*)ext_number, qun_ext_searcher );
+	return (qqqun*)list_search( &qq->qun_list, (void*)ext_number, qun_ext_searcher );
 }
 
 void qun_remove( struct qqclient* qq, uint number )
 {
 	qqqun* q;
-	q = list_search( &qq->qun_list, (void*)number, qun_searcher );
+	q = (qqqun*)list_search( &qq->qun_list, (void*)number, qun_searcher );
 	if( q ){
 		list_cleanup( &q->member_list );
 		list_remove( &qq->qun_list, q );
@@ -212,7 +212,7 @@ void qun_put_event( qqclient* qq )
 	pthread_mutex_unlock( &qq->qun_list.mutex );
 }
 
-//æ›´æ–°æ‰€æœ‰çš„ç¾¤ä¿¡æ¯2009-1-25 11:58
+//¸üĞÂËùÓĞµÄÈºĞÅÏ¢2009-1-25 11:58
 //Update all qun information
 static int qun_update_searcher( const void* p, const void* v )
 {

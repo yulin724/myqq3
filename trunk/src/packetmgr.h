@@ -1,9 +1,9 @@
 #ifndef _PACKETMGR_H
 #define _PACKETMGR_H
 
-#include <pthread.h>
 #include "qqdef.h"
 #include "loop.h"
+#include "commplatform.h"
 
 #include "qqpacket.h"
 struct qqclient;

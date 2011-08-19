@@ -37,9 +37,9 @@ void utf8_to_gb ( char* src, char* dst, int len )
 	WCHAR* strA;
 	int i= MultiByteToWideChar ( CP_UTF8, 0 , src, -1, NULL, 0 );
 	if( i<=0 ){
-		DBG("ERROR."); return;
+		DBG (("ERROR.")); return;
 	}
-	strA = malloc( i*2 );
+	strA = (WCHAR*)malloc( i*2 );
 	MultiByteToWideChar ( CP_UTF8 , 0 , src, -1, strA , i);
 	i= WideCharToMultiByte(CP_ACP,0,strA,-1,NULL,0,NULL,NULL);
 	if( len >= i ){
@@ -57,9 +57,9 @@ void gb_to_utf8 ( char* src, char* dst, int len )
 	WCHAR* strA;
 	int i= MultiByteToWideChar ( CP_ACP, 0 , src, -1, NULL, 0 );
 	if( i<=0 ){
-		DBG("ERROR."); return;
+		DBG (("ERROR.")); return;
 	}
-	strA = malloc( i*2 );
+	strA = (WCHAR*)malloc( i*2 );
 	MultiByteToWideChar ( CP_ACP , 0 , src, -1, strA , i);
 	i= WideCharToMultiByte(CP_UTF8,0,strA,-1,NULL,0,NULL,NULL);
 	if( len >= i ){
@@ -76,7 +76,7 @@ void gb_to_utf8 ( char* src, char* dst, int len )
 void utf8_to_gb( char* src, char* dst, int len )
 {
 	int ret = 0;
-	size_t inlen = strlen( src );
+	size_t inlen = strlen( src ) + 1;
 	size_t outlen = len;
 	char* inbuf = src;
 	char* outbuf = dst;
@@ -92,13 +92,12 @@ void utf8_to_gb( char* src, char* dst, int len )
 void gb_to_utf8( char* src, char* dst, int len )
 {
 	int ret = 0;
-	size_t inlen = strlen( src );
+	size_t inlen = strlen( src ) + 1;
 	size_t outlen = len;
 	char* inbuf = src;
 	char* outbuf2 = NULL;
 	char* outbuf = dst;
 	iconv_t cd;
-	int c;
 
 	// starkwong: if src==dst, the string will become invalid during conversion since UTF-8 is 3 chars in Chinese but GBK is mostly 2 chars
 	if (src==dst) {

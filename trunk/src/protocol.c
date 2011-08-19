@@ -36,7 +36,7 @@ int post_packet( struct qqclient* qq, qqpacket* p, int key_type )
 	bytebuffer* buf = p->buf;
 	int head_len = qq->network==TCP || qq->network==PROXY_HTTP ? 24 : 22;
 	if( qq->log_packet ){
-		DBG("[%d] send packet cmd: %x  seq: %x", qq->number, p->command, p->seqno );
+		DBG (("[%d] send packet cmd: %x  seq: %x", qq->number, p->command, p->seqno ));
 		hex_dump( buf->data, buf->pos );
 	}
 	uchar* encrypted;
@@ -54,7 +54,7 @@ int post_packet( struct qqclient* qq, qqpacket* p, int key_type )
 		{
 			NEW( encrypted, PACKET_SIZE );
 			if( !encrypted ) {
-				DBG("Error: encrypted not allocated.");
+				DBG (("Error: encrypted not allocated."));
 				return -1;
 			}
 			int out_len = PACKET_SIZE;
@@ -68,7 +68,7 @@ int post_packet( struct qqclient* qq, qqpacket* p, int key_type )
 					memcpy( buf->data+qq->data.login_info_magic.len+head_len+2, encrypted, out_len );
 					buf->pos = out_len+qq->data.login_info_magic.len+head_len+2;
 				}else{
-					DBG("encrypted data is too large to store in the packet.");
+					DBG (("encrypted data is too large to store in the packet."));
 				}
 			}else{
 				if( out_len+16+head_len+1 <= buf->size ){
@@ -76,7 +76,7 @@ int post_packet( struct qqclient* qq, qqpacket* p, int key_type )
 					memcpy( buf->data+16+head_len, encrypted, out_len );
 					buf->pos = out_len+16+head_len;
 				}else{
-					DBG("encrypted data is too large to store in the packet.");
+					DBG (("encrypted data is too large to store in the packet."));
 				}
 			}
 			DEL( encrypted );
@@ -86,7 +86,7 @@ int post_packet( struct qqclient* qq, qqpacket* p, int key_type )
 		{
 			NEW( encrypted, PACKET_SIZE );
 			if( !encrypted ) {
-				DBG("Error: encrypted not allocated.");
+				DBG (("Error: encrypted not allocated."));
 				return -2;
 			}
 			int out_len = PACKET_SIZE;
@@ -96,7 +96,7 @@ int post_packet( struct qqclient* qq, qqpacket* p, int key_type )
 				memcpy( buf->data+head_len, encrypted, out_len );
 				buf->pos = out_len+head_len;
 			}else{
-				DBG("encrypted data is too large to store in the packet.");
+				DBG (("encrypted data is too large to store in the packet."));
 			}
 			DEL( encrypted );
 			break;
@@ -127,7 +127,7 @@ static int decrypt_with_key( qqclient* qq, qqpacket* p, bytebuffer* buf, uchar* 
 	uchar* decrypted;
 	NEW( decrypted, PACKET_SIZE );
 	if( !decrypted ) {
-		DBG("Error: decrypted not allocated.");
+		DBG (("Error: decrypted not allocated."));
 		return -1;
 	}
 	int ret = qqdecrypt( buf->data+head_len, buf->len-head_len-1, key, decrypted, &out_len );
@@ -138,7 +138,7 @@ static int decrypt_with_key( qqclient* qq, qqpacket* p, bytebuffer* buf, uchar* 
 		if( out_len < PACKET_SIZE )
 			memcpy( p->buf->data, decrypted, out_len );
 		else
-			DBG("Wrong out_len : %d", out_len );
+			DBG (("Wrong out_len : %d", out_len ));
 		p->buf->pos = 0;
 		p->buf->len = out_len;
 	}
@@ -188,7 +188,7 @@ static int decrypt_packet( qqclient* qq, qqpacket* p, bytebuffer* buf )
 	}
 	if( decrypt_with_key( qq, p, buf, qq->md5_pass2 ) )
 		return 1;
-	DBG("cannot decrypt packet. cmd:%x", p->command );
+	DBG (("cannot decrypt packet. cmd:%x", p->command ));
 	return 0;
 
 }
@@ -198,7 +198,7 @@ int process_packet( qqclient* qq, qqpacket* p, bytebuffer* buf )
 	if( !decrypt_packet( qq, p, buf ) )
 		return -1;
 	if( qq->log_packet ){
-		DBG("[%d] recv packet ver:%x cmd: %x seqno: %x", qq->number, p->version, p->command, p->seqno );
+		DBG (("[%d] recv packet ver:%x cmd: %x seqno: %x", qq->number, p->version, p->command, p->seqno ));
 		hex_dump( p->buf->data, p->buf->len );
 	}
 	switch( p->command ){
@@ -313,7 +313,7 @@ int process_packet( qqclient* qq, qqpacket* p, bytebuffer* buf )
 		prot_buddy_del_buddy_reply( qq, p );
 		break;
 	default:
-		DBG("unknown cmd: %x", p->command );
+		DBG (("unknown cmd: %x", p->command ));
 		hex_dump( p->buf->data, p->buf->len );
 		break;
 	}

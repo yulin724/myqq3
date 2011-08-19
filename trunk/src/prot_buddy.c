@@ -50,7 +50,7 @@ void prot_buddy_update_list_reply( struct qqclient* qq, qqpacket* p )
 		number = get_int( buf );
 		b = buddy_get( qq, number, 1 );
 		if( b == NULL ){
-			DBG("Error: failed to allocate buddy.");
+			DBG (("Error: failed to allocate buddy."));
 			next_pos = 0xffff;
 			break;
 		}
@@ -66,7 +66,7 @@ void prot_buddy_update_list_reply( struct qqclient* qq, qqpacket* p )
 	if( next_pos != 0xffff ){
 		prot_buddy_update_list( qq, next_pos );
 	}else{
-		DBG("buddy_count: %d", qq->buddy_list.count );
+		DBG (("buddy_count: %d", qq->buddy_list.count ));
 		buddy_set_all_off( qq );
 		prot_buddy_update_online( qq, 0 );
 #ifndef NO_BUDDY_DETAIL_INFO
@@ -102,7 +102,7 @@ void prot_buddy_update_online_reply( struct qqclient* qq, qqpacket* p )
 			max_number = number;
 		b = buddy_get( qq, number, 0 );
 		if( !b ){
-			DBG("buddy_get(%d) failed.", number );
+			DBG (("buddy_get(%d) failed.", number ));
 			next_order = 0xff;
 			break;
 		}
@@ -135,7 +135,7 @@ void prot_buddy_status( struct qqclient* qq, qqpacket* p )
 		b->port = get_word( buf );
 		get_byte( buf );
 		b->status = get_byte( buf );
-//		DBG("status to %x", b->status );
+//		DBG (("status to %x", b->status ));
 		b->version = get_word( buf );
 		get_data( buf, b->session_key, 16 );
 		char event[64];
@@ -163,7 +163,7 @@ void prot_buddy_update_signiture( struct qqclient* qq, uint pos )
 	count = MIN( 50, qq->buddy_list.count-i );
 	if( count == 0 ){
 		pthread_mutex_unlock( &qq->buddy_list.mutex );
-		DBG("signature finished.");
+		DBG (("signature finished."));
 		packetmgr_del_packet( &qq->packetmgr, p );
 		return;
 	}
@@ -186,7 +186,7 @@ void prot_buddy_update_signiture_reply( struct qqclient* qq, qqpacket* p )
 		{
 			uchar result = get_byte( buf );
 			if( result!=0 ){
-				DBG("reuslt = %d", result );
+				DBG (("reuslt = %d", result ));
 				return;
 			}
 			uint next_pos;
@@ -195,7 +195,7 @@ void prot_buddy_update_signiture_reply( struct qqclient* qq, qqpacket* p )
 				uint number = get_int( buf );
 				qqbuddy* b = buddy_get( qq, number, 0 );
 				if( !b ){
-					DBG("buddy_get(%d) failed", number);
+					DBG (("buddy_get(%d) failed", number));
 					return;
 				}
 				b->sign_time = get_int( buf );
@@ -203,7 +203,7 @@ void prot_buddy_update_signiture_reply( struct qqclient* qq, qqpacket* p )
 			//	len = MIN( len, SIGNITURE_LEN-1 );
 				get_data( buf,  (uchar*)b->signature, len );
 				b->signature[len] = 0;
-			//	DBG("sign: %s  %s", b->nickname, b->signature );
+			//	DBG (("sign: %s  %s", b->nickname, b->signature ));
 			}
 			if( next_pos != 0 && next_pos != 0xffffffff ){
 				//send else
@@ -212,7 +212,7 @@ void prot_buddy_update_signiture_reply( struct qqclient* qq, qqpacket* p )
 		}
 		break;
 	default:
-		DBG("unknown cmd = %x", cmd );
+		DBG (("unknown cmd = %x", cmd ));
 	}
 }
 
@@ -234,7 +234,7 @@ void prot_buddy_update_account( struct qqclient* qq, uint pos )
 	count = MIN( 50, qq->buddy_list.count-i );
 	if( count == 0 ){
 		pthread_mutex_unlock( &qq->buddy_list.mutex );
-		DBG("account finished.");
+		DBG (("account finished."));
 		packetmgr_del_packet( &qq->packetmgr, p );
 		return;
 	}
@@ -256,18 +256,19 @@ void prot_buddy_update_account_reply( struct qqclient* qq, qqpacket* p )
 			get_int(buf );	//self number
 			ushort result = get_word( buf );
 			if( result!=0x0001 ){
-				DBG("reuslt = %d", result );
+				DBG (("reuslt = %d", result ));
 				return;
 			}
 			uint next_pos;
 			next_pos = get_int( buf );
 			int count;
 			count = get_word( buf );
+			UNREFERENCED_PARAMETER( count );
 			while( buf->pos < buf->len ){
 				uint number = get_int( buf );
 				qqbuddy* b = buddy_get( qq, number, 0 );
 				if( !b ){
-					DBG("b==NULL");
+					DBG (("b==NULL"));
 					return;
 				}
 				b->account_flag = get_int( buf );
@@ -276,7 +277,7 @@ void prot_buddy_update_account_reply( struct qqclient* qq, qqpacket* p )
 					len = MIN( len, ACCOUNT_LEN-1 );
 					get_data( buf,  (uchar*)b->account, len );
 					b->account[len] = 0;
-			//		DBG("account: %s  %s", b->nickname, b->account );
+			//		DBG (("account: %s  %s", b->nickname, b->account ));
 				}
 			}
 			if( next_pos != 0 && next_pos != 0xffffffff ){
@@ -293,13 +294,13 @@ void prot_buddy_update_account_reply( struct qqclient* qq, qqpacket* p )
 			number = get_int( buf );
 			result = get_byte( buf );
 			if( result != 00 ){
-				DBG("failed to verify adding buddy msg.");
+				DBG (("failed to verify adding buddy msg."));
 			}
-			DBG("verified adding buddy msg %u result: %d", number, result );
+			DBG (("verified adding buddy msg %u result: %d type: %d", number, result, type ));
 		}
 		break;
 	default:
-		DBG("unknown cmd = %x", cmd );
+		DBG (("unknown cmd = %x", cmd ));
 	}
 }
 
@@ -327,7 +328,7 @@ void prot_buddy_update_alias_reply( struct qqclient* qq, qqpacket* p )
 				uint number = get_int( buf );
 				qqbuddy* b = buddy_get( qq, number, 1 );
 				if( !b ){
-					DBG("b==NULL");
+					DBG (("b==NULL"));
 					return;
 				}
 				uchar len = get_byte( buf );
@@ -335,10 +336,10 @@ void prot_buddy_update_alias_reply( struct qqclient* qq, qqpacket* p )
 				get_data( buf,  (uchar*)b->alias, len );
 				b->alias[len] = 0;
 				count ++;
-			//	DBG("alias: %s  %s", b->nickname, b->alias );
+			//	DBG (("alias: %s  %s", b->nickname, b->alias ));
 			}
 			if( result!=0x01 ){
-				DBG("reuslt = %d", result );
+				DBG (("reuslt = %d", result ));
 				prot_buddy_update_alias( qq, count );
 				return;
 			}
@@ -346,7 +347,7 @@ void prot_buddy_update_alias_reply( struct qqclient* qq, qqpacket* p )
 		}
 		break;
 	default:
-		DBG("unknown cmd = %x", cmd );
+		DBG (("unknown cmd = %x", cmd ));
 	}
 }
 #endif
@@ -373,28 +374,28 @@ void prot_buddy_request_addbuddy_reply( struct qqclient* qq, qqpacket* p )
 			b->verify_flag = flag;
 		}
 		switch( flag ){
-		case 00: //å…è®¸ä»»ä½•äºº
+		case 00: //ÔÊĞíÈÎºÎÈË
 			prot_user_request_token( qq, number, OP_ADDBUDDY, 1, 0 );
 			break;
-		case 01: //éœ€è¦éªŒè¯
+		case 01: //ĞèÒªÑéÖ¤
 			prot_user_request_token( qq, number, OP_ADDBUDDY, 1, 0 );
 			break;
 		case 02:
 		{
 			char msg[128];
-			sprintf( msg, "[%u]æ‹’ç»è¢«ä»»ä½•äººåŠ ä¸ºå¥½å‹ã€‚", number );
+			sprintf( msg, "[%u]¾Ü¾ø±»ÈÎºÎÈË¼ÓÎªºÃÓÑ¡£", number );
 			buddy_msg_callback( qq, 100, time(NULL), msg );
 			break;
 		}
 		case 03:	//answer question
 		{
 			char msg[128];
-			sprintf( msg, "[%u]éœ€è¦å›ç­”é—®é¢˜æ‰èƒ½åŠ ä¸ºå¥½å‹ã€‚", number );
+			sprintf( msg, "[%u]ĞèÒª»Ø´ğÎÊÌâ²ÅÄÜ¼ÓÎªºÃÓÑ¡£", number );
 			buddy_msg_callback( qq, 100, time(NULL), msg );
 			break;
 		}
 		default:
-			DBG("Unknown flag = %x", flag );
+			DBG (("Unknown flag = %x", flag ));
 		}
 	}
 }
@@ -451,18 +452,18 @@ void prot_buddy_verify_addbuddy_reply( struct qqclient* qq, qqpacket* p )
 			uchar result = get_byte( buf );
 			if( result == 0x00 ){
 				char msg[128];
-				DBG("add buddy %u ok!! [cmd=%x]", number, cmd );
-				sprintf( msg, "ä½ å·²ç»æŠŠ[%u]æ·»åŠ ä¸ºå¥½å‹ã€‚", number );
+				DBG (("add buddy %u ok!! [cmd=%x]", number, cmd ));
+				sprintf( msg, "ÄãÒÑ¾­°Ñ[%u]Ìí¼ÓÎªºÃÓÑ¡£", number );
 				buddy_msg_callback( qq, 100, time(NULL), msg );
 				//refresh buddylist
 				buddy_update_list( qq );
 			}else{
-				DBG("failed to add buddy %u  result=%d", number, result );
+				DBG (("failed to add buddy %u  result=%d", number, result ));
 			}
 		}
 		break;
 	default:
-		DBG("unknown cmd = %x", cmd );
+		DBG (("unknown cmd = %x", cmd ));
 	}
 }
 
@@ -471,7 +472,7 @@ void prot_buddy_del_buddy( struct qqclient* qq, uint number )
 	qqpacket* p = packetmgr_new_send( qq, QQ_CMD_DEL_BUDDY );
 	if( !p ) return;
 	bytebuffer *buf = p->buf;
-	put_byte( buf, qq->data.user_token.len );
+	put_byte( buf, (uchar)qq->data.user_token.len );
 	put_data( buf, qq->data.user_token.data, qq->data.user_token.len );
 	char s[16];
 	sprintf( s, "%u", number );
@@ -483,16 +484,16 @@ void prot_buddy_del_buddy_reply( struct qqclient* qq, qqpacket* p )
 {
 	bytebuffer *buf = p->buf;
 	if( get_byte( buf ) != 0 ){
-		DBG("Failed to del buddy %u.", qq->data.operating_number );
+		DBG (("Failed to del buddy %u.", qq->data.operating_number ));
 	}else{
 		char msg[128];
 		buddy_remove( qq, qq->data.operating_number );
-		sprintf( msg, "åˆ é™¤å¥½å‹[%u]æˆåŠŸã€‚", qq->data.operating_number );
+		sprintf( msg, "É¾³ıºÃÓÑ[%u]³É¹¦¡£", qq->data.operating_number );
 		buddy_msg_callback( qq, 100, time(NULL), msg );
 	}
 }
 
-//è·å–ä¸šåŠ¡ä¿¡æ¯
+//»ñÈ¡ÒµÎñĞÅÏ¢
 void prot_buddy_get_extra_info( struct qqclient* qq, uint number )
 {
 	qqpacket* p = packetmgr_new_send( qq, QQ_CMD_GET_BUDDY_EXTRA_INFO );
@@ -507,45 +508,46 @@ void prot_buddy_get_extra_info( struct qqclient* qq, uint number )
 void prot_buddy_get_extra_info_reply( struct qqclient* qq, qqpacket* p )
 {
 	bytebuffer *buf = p->buf;
-	buf = NULL;
+	if(NULL != buf){
+	}
 }
 
-//è·å–å¥½å‹è¯¦ç»†èµ„æ–™ 
+//»ñÈ¡ºÃÓÑÏêÏ¸×ÊÁÏ 
 void prot_buddy_get_info( struct qqclient* qq, uint number )
 {
 	qqpacket* p = packetmgr_new_send( qq, QQ_CMD_BUDDY_INFO );
 	if( !p ) return;
 	bytebuffer *buf = p->buf;
-	put_word( buf, 0x0001 );   //003Cåè®®ç‰ˆæœ¬å·
-	put_int( buf, number );    //QQå·
-	buf->pos += 22;	//22 zeros //è…¾è®¯ä¿ç•™
-	put_word( buf, 0x001A );	//entry count  4Eå’Œ52æ˜¯æ ‡è®°åˆ†éš”ç¬¦
+	put_word( buf, 0x0001 );   //003CĞ­Òé°æ±¾ºÅ
+	put_int( buf, number );    //QQºÅ
+	buf->pos += 22;	//22 zeros //ÌÚÑ¶±£Áô
+	put_word( buf, 0x001A );	//entry count  4EºÍ52ÊÇ±ê¼Ç·Ö¸ô·û
 	put_word( buf, 0x4E22 );	//nickname
-	put_word( buf, 0x4E25 );	//é‚®æ”¿ç¼–ç 
-	put_word( buf, 0x4E26 );	//åœ°å€
-	put_word( buf, 0x4E27 );	//å®¶åº­ç”µè¯
-	put_word( buf, 0x4E29 );	//æ€§åˆ«
-	put_word( buf, 0x4E2A );	//çœŸå®åç§°
+	put_word( buf, 0x4E25 );	//ÓÊÕş±àÂë
+	put_word( buf, 0x4E26 );	//µØÖ·
+	put_word( buf, 0x4E27 );	//¼ÒÍ¥µç»°
+	put_word( buf, 0x4E29 );	//ĞÔ±ğ
+	put_word( buf, 0x4E2A );	//ÕæÊµÃû³Æ
 	put_word( buf, 0x4E2B );	//email
 	put_word( buf, 0x4E2C );	//occupation
-	put_word( buf, 0x4E2D );	//ä¸»é¡µ
-	put_word( buf, 0x4E2E );	//å›½å®¶ç¼–ç ï¼Œä¸­å›½ä¸º31
-	put_word( buf, 0x4E2F );	//å¤´åƒç´¢å¼•ï¼Œä¾‹å¦‚237=237/3=79=0x4F
-	put_word( buf, 0x4E30 );	//æ‰‹æœº
-	put_word( buf, 0x4E31 );	//èµ„æ–™å¯è§åº¦
-	put_word( buf, 0x4E33 );	//ä¸ªäººè¯´æ˜
-	put_word( buf, 0x4E35 );	//æ¯•ä¸šå­¦æ ¡
-	put_word( buf, 0x4E36 );	//æ˜Ÿåº§
-	put_word( buf, 0x4E37 );	//ç”Ÿè‚–
-	put_word( buf, 0x4E38 );	//è¡€å‹
-	put_word( buf, 0x4E3F );	//ç”Ÿæ—¥
-	put_word( buf, 0x4E40 );	//å›½å®¶ç¼–ç +çœå¸‚ç¼–ç 
-	put_word( buf, 0x4E41 );	//ç¬¬1è¯­è¨€
-	put_word( buf, 0x4E42 );	//ç¬¬2è¯­è¨€
-	put_word( buf, 0x4E43 );	//ç¬¬3è¯­è¨€
-	put_word( buf, 0x4E45 );	//å¹´é¾„
-	put_word( buf, 0x520B );	//ä¼šå‘˜æ ‡å¿—
-	put_word( buf, 0x520F );	//å®¢æˆ·ç«¯æ ‡è¯†
+	put_word( buf, 0x4E2D );	//Ö÷Ò³
+	put_word( buf, 0x4E2E );	//¹ú¼Ò±àÂë£¬ÖĞ¹úÎª31
+	put_word( buf, 0x4E2F );	//Í·ÏñË÷Òı£¬ÀıÈç237=237/3=79=0x4F
+	put_word( buf, 0x4E30 );	//ÊÖ»ú
+	put_word( buf, 0x4E31 );	//×ÊÁÏ¿É¼û¶È
+	put_word( buf, 0x4E33 );	//¸öÈËËµÃ÷
+	put_word( buf, 0x4E35 );	//±ÏÒµÑ§Ğ£
+	put_word( buf, 0x4E36 );	//ĞÇ×ù
+	put_word( buf, 0x4E37 );	//ÉúĞ¤
+	put_word( buf, 0x4E38 );	//ÑªĞÍ
+	put_word( buf, 0x4E3F );	//ÉúÈÕ
+	put_word( buf, 0x4E40 );	//¹ú¼Ò±àÂë+Ê¡ÊĞ±àÂë
+	put_word( buf, 0x4E41 );	//µÚ1ÓïÑÔ
+	put_word( buf, 0x4E42 );	//µÚ2ÓïÑÔ
+	put_word( buf, 0x4E43 );	//µÚ3ÓïÑÔ
+	put_word( buf, 0x4E45 );	//ÄêÁä
+	put_word( buf, 0x520B );	//»áÔ±±êÖ¾
+	put_word( buf, 0x520F );	//¿Í»§¶Ë±êÊ¶
 	post_packet( qq, p, SESSION_KEY );
 }
 

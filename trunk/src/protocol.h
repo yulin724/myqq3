@@ -4,6 +4,19 @@
 #include "qqdef.h"
 #include "qqpacket.h"
 
+#ifdef __WIN32__
+#pragma pack(push)
+#pragma pack(1)
+typedef struct _SERVER_INFO{
+	ushort	w_redirect_count;
+	uchar	c_redirect_count;
+	uint	conn_isp_id;
+	uint	server_reverse;
+	uint	conn_ip;
+}SERVER_INFO;
+#pragma pack(pop)
+#endif
+
 struct qqdata_2009{
 	uchar		locale[6];
 	uchar		version_spec[12];
@@ -17,6 +30,9 @@ struct qqdata_2009{
 	uchar		exe_hash[16];
 	union{
 		uchar		server_data[15];
+#ifdef __WIN32__
+		SERVER_INFO server_info;
+#else
 		struct{
 			ushort	w_redirect_count;
 			uchar	c_redirect_count;
@@ -24,6 +40,7 @@ struct qqdata_2009{
 			uint	server_reverse;
 			uint	conn_ip;
 		}__attribute__((packed)) server_info;
+#endif
 	};
 	token		login_token;
 	token		verify_token;
@@ -40,7 +57,7 @@ struct qqdata_2009{
 	token		user_token;
 	time_t		user_token_time;
 	uint		operating_number;
-	uchar		operation;	//å½“å‰æ“ä½œ
+	uchar		operation;	//µ±Ç°²Ù×÷
 	char		qqsession[128];
 	char		addbuddy_str[128];
 };
@@ -75,14 +92,14 @@ enum {
 	QQ_RECV_IM_TEMP_QUN_IM = 0x002A,
 	QQ_RECV_IM_QUN_IM = 0x002B,
 	QQ_RECV_IM_SYS_NOTIFICATION = 0x0030,
+	QQ_RECV_IM_UNKNOWN_BUDDY_09 = 0x0031,	//09 Ä°ÉúÈË
 	QQ_RECV_IM_QUN_IM_09 = 0x0052,
 	QQ_RECV_IM_BUDDY_0802 = 0x0084,
 	QQ_RECV_IM_QUN_MEMBER_IM = 0x008C,
 	QQ_RECV_IM_SOMEBODY = 0x008D,
 	QQ_RECV_IM_WRITING = 0x0079,
 	QQ_RECV_IM_BUDDY_09 = 0x0078,	//09 Preview4 Message
-	QQ_RECV_IM_BUDDY_09SP1 = 0x00A6,	//09 SP1 Messageï¼ŒTXåè®®ä¸€å˜å†å˜ï¼Œè¯´æ˜ä»€ä¹ˆé—®é¢˜ï¼Ÿ
-	QQ_RECV_IM_UNKNOWN_BUDDY_09 = 0x0031	//09 é™Œç”Ÿäºº
+	QQ_RECV_IM_BUDDY_09SP1 = 0x00A6,	//09 SP1 Message£¬TXĞ­ÒéÒ»±äÔÙ±ä£¬ËµÃ÷Ê²Ã´ÎÊÌâ£¿
 };
 enum {
 	QQ_NORMAL_IM_TEXT = 0x000b,

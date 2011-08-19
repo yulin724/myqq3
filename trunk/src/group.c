@@ -23,7 +23,7 @@
 
 static int searcher( const void* p, const void* v )
 {
-	return ( ((qqgroup*)p)->number == (int)v );
+	return ( ((qqgroup*)p)->number == (uint)v );
 }
 
 qqgroup* group_get( struct qqclient* qq, uint number, int create )
@@ -31,19 +31,19 @@ qqgroup* group_get( struct qqclient* qq, uint number, int create )
 	if( !number )
 		return NULL;
 	qqgroup* g;
-	g = list_search( &qq->group_list, (void*)number, searcher );
+	g = (qqgroup*)list_search( &qq->group_list, (void*)number, searcher );
 	//if not found, g must be NULL
 	if( !g && create ){
 		NEW( g, sizeof( qqgroup ) );
 		if( !g ){
-			DBG("Fatal error: group not allocated"); 
+			DBG (("Fatal error: group not allocated")); 
 			return g;
 		}
 		g->number = number;
 		sprintf( g->name, "%u", number );
 		if( list_append( &qq->group_list, (void*)g )<0 ){
 			DEL( g );
-			DBG("group list is full.");
+			DBG (("group list is full."));
 		}
 	}
 	return g;
@@ -52,7 +52,7 @@ qqgroup* group_get( struct qqclient* qq, uint number, int create )
 void group_remove( struct qqclient* qq, uint number )
 {
 	qqgroup* g;
-	g = list_search( &qq->group_list, (void*)number, searcher );
+	g = (qqgroup*)list_search( &qq->group_list, (void*)number, searcher );
 	if( g ){
 		list_remove( &qq->group_list, g );
 	}
@@ -60,7 +60,7 @@ void group_remove( struct qqclient* qq, uint number )
 
 void group_update_list( struct qqclient* qq )
 {
-//	prot_group_download_list( qq, 0 );  ä¸çŸ¥é“è¿™ä¸ª09è¿˜èƒ½ä¸èƒ½ç”¨ã€‚
+//	prot_group_download_list( qq, 0 );  ²»ÖªµÀÕâ¸ö09»¹ÄÜ²»ÄÜÓÃ¡£
 	prot_group_download_labels( qq, 0 );
 }
 

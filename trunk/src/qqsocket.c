@@ -15,8 +15,6 @@
 
 
 #include <stdio.h>
-#include <unistd.h>
-
 #ifdef __WIN32__
 #include <winsock.h>
 #include <wininet.h>
@@ -24,6 +22,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <unistd.h>
 #endif
 
 #include <fcntl.h>
@@ -40,12 +39,12 @@ static WSADATA wsa_data;
 void qqsocket_init()
 {
 #ifdef __WIN32__
-	int ret = WSAStartup(MAKEWORD(2,1), &wsa_data); //鍒濆鍖朩inSocket鍔ㄦ�佽繛鎺ュ簱
-	if( ret != 0 ) // 鍒濆鍖栧け璐ワ紱
+	int ret = WSAStartup(MAKEWORD(2,1), &wsa_data); //初始化WinSocket动态连接库
+	if( ret != 0 ) // 初始化失败；
 	{
-		DBG("failed in WSAStartup");
+		DBG (("failed in WSAStartup"));
 	}
-	DBG("WSA Startup.");
+	DBG (("WSA Startup."));
 #endif
 }
 void qqsocket_end()
@@ -73,8 +72,8 @@ int qqsocket_create( int type, char* ip, ushort port )
 		addr.sin_port = htons( port );
 		if( bind( fd, (struct sockaddr*)&addr, sizeof(struct sockaddr_in) ) < 0 )
 		{
-			DBG("bind tcp socket error!");
-			close( fd );
+			DBG (("bind tcp socket error!"));
+			qqsocket_close( fd );
 			return -1;
 		}
 		break;
@@ -89,8 +88,8 @@ int qqsocket_create( int type, char* ip, ushort port )
 		addr.sin_port = htons( port );
 		if( bind( fd, (struct sockaddr*)&addr, sizeof(struct sockaddr_in) ) < 0 )
 		{
-			DBG("bind udp socket error!");
-			close( fd );
+			DBG (("bind udp socket error!"));
+			qqsocket_close( fd );
 			return -1;
 		}
 		break;
@@ -104,6 +103,7 @@ void qqsocket_close( int fd )
 #ifdef __WIN32__
 	closesocket( fd );
 #else
+	shutdown(fd, SHUT_RDWR);
 	close( fd );
 #endif
 } 
@@ -118,7 +118,7 @@ int qqsocket_connect( int fd, char* ip, ushort port )
 	addr.sin_port = htons( port );
 	if( connect( fd, (struct sockaddr*)&addr, sizeof(struct sockaddr_in)) < 0 )
 	{
-		DBG("qqsocket connect failed.");
+		DBG (("qqsocket connect failed."));
 		return -1;
 	}
 	return 0;
@@ -134,7 +134,7 @@ int qqsocket_connect2( int fd, uint ip, ushort port )
 	addr.sin_port = htons( port );
 	if( connect( fd, (struct sockaddr*)&addr, sizeof(struct sockaddr_in)) < 0 )
 	{
-		DBG("qqsocket connect failed.");
+		DBG (("qqsocket connect failed."));
 		return -1;
 	}
 	return 0;
@@ -151,9 +151,9 @@ void netaddr_set( char* name, struct sockaddr_in* addr )
 		if( host )
 		{
 			addr->sin_addr.s_addr = *(size_t*) host->h_addr_list[0];
-			DBG("Get IP: %s", inet_ntoa( addr->sin_addr ) );
+			DBG (("Get IP: %s", inet_ntoa( addr->sin_addr ) ));
 		}else{
-			DBG("Failed to get ip by %s", name );
+			DBG (("Failed to get ip by %s", name ));
 		}
 	}	
 }
@@ -178,8 +178,11 @@ int qqsocket_send( int fd, uchar* buf, size_t size )
 
 int qqsocket_recv( int fd, uchar* buf, size_t size )
 {
-	int ret;
-	ret = recv( fd, (char*)buf, size, 0 );
+	int ret = -1;
+	
+	if (size > 0)
+		ret = recv( fd, (char*)buf, size, 0 );
+	
 	return ret;
 }
 

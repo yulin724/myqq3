@@ -13,9 +13,8 @@
  */
 
 
- #include <string.h>
+#include <string.h>
 #include <stdlib.h>
-#include <unistd.h>
 #ifdef __WIN32__
 #include <winsock.h>
 #include <wininet.h>
@@ -23,6 +22,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <unistd.h>
 #endif
 
 #include "memory.h"
@@ -41,7 +41,7 @@ static int tcp_server_count = 0, udp_server_count = 0, proxyhttp_server_count = 
 
 static uint last_server_ip = 0, last_server_port = 0;	//for quick login
 
-// è§£ææœåŠ¡å™¨åˆ—è¡¨
+// ½âÎö·şÎñÆ÷ÁĞ±í
 static void read_server_addr( server_item* srv, char* s, int* count  )
 {
 	char ip[32], port[10], read_name = 1, *p;
@@ -73,7 +73,7 @@ static void read_server_addr( server_item* srv, char* s, int* count  )
 	}
 }
 
-// ä»é…ç½®æ–‡ä»¶è¯»å…¥æœåŠ¡å™¨åˆ—è¡¨
+// ´ÓÅäÖÃÎÄ¼ş¶ÁÈë·şÎñÆ÷ÁĞ±í
 void qqconn_load_serverlist()
 {
 	if( !tcp_server_count && !udp_server_count ){
@@ -93,7 +93,7 @@ void qqconn_load_serverlist()
 	}
 }
 
-// è·å–æœåŠ¡å™¨åœ°å€
+// »ñÈ¡·şÎñÆ÷µØÖ·
 void qqconn_get_server(qqclient* qq)
 {
 	int i;
@@ -121,7 +121,7 @@ void qqconn_get_server(qqclient* qq)
 		}else{
 			if( udp_server_count <1 ){
 				qq->process = P_ERROR;
-				DBG("no server for logging.");
+				DBG (("no server for logging."));
 				return;
 			}
 			i = rand()%udp_server_count;
@@ -135,7 +135,7 @@ void qqconn_get_server(qqclient* qq)
 	}
 }
 
-// æ›´æ¢qqæœåŠ¡å™¨
+// ¸ü»»qq·şÎñÆ÷
 static char proxy_format[] = "CONNECT %s:%d HTTP/1.1\r\n"
 "Accept: */*\r\n"
 "Content-Type: text/html\r\n"
@@ -146,7 +146,7 @@ int qqconn_establish( qqclient* qq )
 	char tmp[256];
 	int ret;
 	if( qq->network != PROXY_HTTP ){
-		DBG("## Warning: not in proxy mode.");
+		DBG (("## Warning: not in proxy mode."));
 		return -1;
 	}
 	struct in_addr addr;
@@ -154,7 +154,7 @@ int qqconn_establish( qqclient* qq )
 	sprintf( tmp, proxy_format, inet_ntoa( addr ), qq->server_port );
 	ret = qqsocket_send( qq->socket, (uchar*)tmp, strlen(tmp) );
 	if( ret<=0 ){
-		DBG("failed to send data to proxy sever.");
+		DBG (("failed to send data to proxy sever."));
 		qqclient_set_process( qq, P_ERROR );
 		return -2;
 	}
@@ -162,7 +162,7 @@ int qqconn_establish( qqclient* qq )
 	return 0;
 }
 
-// è¿æ¥æœåŠ¡å™¨
+// Á¬½Ó·şÎñÆ÷
 int qqconn_connect( qqclient* qq )
 {
 	//connect server
@@ -184,14 +184,14 @@ int qqconn_connect( qqclient* qq )
 		port = qq->server_port;
 	}
 	if( qq->socket < 0 ){
-		DBG("can't not create socket. ret=%d", qq->socket );
+		DBG (("can't not create socket. ret=%d", qq->socket ));
 		return -1;
 	}
 	struct in_addr addr;
 	addr.s_addr = htonl( ip );
-	DBG("connecting to %s:%d", inet_ntoa( addr ), port );
+	DBG (("connecting to %s:%d", inet_ntoa( addr ), port ));
 	if( qqsocket_connect2( qq->socket, ip, port ) < 0 ){
-		DBG("can't not connect server %s", inet_ntoa( addr ) );
+		DBG (("can't not connect server %s", inet_ntoa( addr ) ));
 		return -1;
 	}
 	return 0;
