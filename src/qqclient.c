@@ -383,7 +383,7 @@ int qqclient_put_event( qqclient* qq, char* event )
 {
 	char* buf;
 	int len = strlen( event );
-	NEW( buf, len+1 );
+	NEW( char*, buf, len+1 );
 	if( !buf ) return -1;
 	strcpy( buf, event );
 	loop_push_to_tail( &qq->event_loop, (void*)buf );
@@ -394,7 +394,7 @@ int qqclient_put_message( qqclient* qq, char* msg )
 {
 	char* buf;
 	int len = strlen( msg );
-	NEW( buf, len+1 );
+	NEW( char*, buf, len+1 );
 	if( !buf ) return -1;
 	strcpy( buf, msg );
 	loop_push_to_tail( &qq->msg_loop, (void*)buf );

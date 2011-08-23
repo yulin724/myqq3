@@ -34,7 +34,7 @@ qqgroup* group_get( struct qqclient* qq, uint number, int create )
 	g = (qqgroup*)list_search( &qq->group_list, (void*)number, searcher );
 	//if not found, g must be NULL
 	if( !g && create ){
-		NEW( g, sizeof( qqgroup ) );
+		NEW( qqgroup*, g, sizeof( qqgroup ) );
 		if( !g ){
 			DBG (("Fatal error: group not allocated")); 
 			return g;
@@ -74,7 +74,7 @@ void group_put_event( qqclient* qq )
 	char *temp;
 	int i;
 	qqgroup* g;
-	NEW( temp, KB(1) );
+	NEW( char*, temp, KB(1) );
 	if( !temp ) return;
 	strcpy( temp, "grouplist^$" );
 	pthread_mutex_lock( &qq->group_list.mutex );

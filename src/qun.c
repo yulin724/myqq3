@@ -42,7 +42,7 @@ qunmember* qun_member_get( struct qqclient* qq, qqqun* q, uint number, int creat
 	m = (qunmember*)list_search( &q->member_list, (void*)number, member_searcher );
 	//if not found, m must be NULL
 	if( !m && create ){
-		NEW( m, sizeof( qunmember ) );
+		NEW( qunmember*, m, sizeof( qunmember ) );
 		if( !m ){
 			DBG (("Fatal error: qunmember not allocated")); 
 			return m;
@@ -74,7 +74,7 @@ qqqun* qun_get( struct qqclient* qq, uint number, int create )
 	q = (qqqun*)list_search( &qq->qun_list, (void*)number, qun_searcher );
 	//if not found, b must be NULL
 	if( !q && create ){
-		NEW( q, sizeof( qqqun ) );
+		NEW( qqqun*, q, sizeof( qqqun ) );
 		if( !q ){
 			DBG (("Fatal error: qqqun not allocated")); 
 			return q;
@@ -141,7 +141,7 @@ static int get_all_members( const void* p, const void* v )
 void qun_update_memberinfo( qqclient* qq, qqqun* q )
 {
 	uint* numbers, *v;
-	NEW( numbers, MAX_QUN_MEMBER*sizeof(uint) );
+	NEW( uint*, numbers, MAX_QUN_MEMBER*sizeof(uint) );
 	if( !numbers ) return;
 	v = numbers;
 	list_search( &q->member_list, (void*)&v, get_all_members );
@@ -184,7 +184,7 @@ void qun_put_single_event( qqclient* qq, qqqun* q )
 {
 	char *temp;
 	int i;
-	NEW( temp, KB(128) );
+	NEW( char*, temp, KB(128) );
 	if( !temp )
 		return;
 	qunmember* m;

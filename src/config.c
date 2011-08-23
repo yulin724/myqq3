@@ -210,7 +210,7 @@ void config_close( config* c )
 config *g_conf;
 void config_init()
 {
-	NEW( g_conf, sizeof(config) );
+	NEW( config*, g_conf, sizeof(config) );
 	if( !g_conf ) return;
 	if( config_open( g_conf, "./qqconfig.txt" ) < 0 ){
 		perror("can't not open qqconfig.txt file.");

@@ -133,8 +133,8 @@ EXPORT user* webqq_create_user( void* session_ptr, uint number, uchar* md5pass )
 	u = loop_search( &user_loop, session_ptr, get_user_searcher );
 	if( u )
 		return u;
-	NEW( qq, sizeof(qqclient) );
-	NEW( u, sizeof(user) );
+	NEW( qqclient*, qq, sizeof(qqclient) );
+	NEW( user*, u, sizeof(user) );
 	if( !u || !qq ){
 		DEL( qq );	DEL( u );
 		return NULL;
@@ -228,7 +228,7 @@ void buddy_msg_callback ( qqclient* qq, uint uid, time_t t, char* msg )
 		strftime( timestr, 24, "%H:%M:%S", timeinfo );
 	}
 	len = strlen( msg );
-	NEW( str, len+64 );
+	NEW( char *, str, len+64 );
 	if( uid == 10000 ){
 		sprintf( str, "broadcast^$System^$%s", msg );
 	}else{
@@ -262,7 +262,7 @@ void qun_msg_callback ( qqclient* qq, uint uid, uint int_uid,
 		return;
 	}
 	len = strlen( msg );
-	NEW( str, len+64 );
+	NEW( char *, str, len+64 );
 	sprintf( str, "clustermsg^$%u^$%u^$%s^$%s", q->ext_number, uid, timestr, msg );
 	qqclient_put_message( qq, str );
 }

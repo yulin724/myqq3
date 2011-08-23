@@ -164,7 +164,7 @@ void prot_user_get_notice_reply( struct qqclient* qq, qqpacket* p )
 		{
 			ushort len = get_word( buf );
 			char* str;
-			NEW( str, len+1 );
+			NEW( char*, str, len+1 );
 			if( !str )
 				return;
 			get_data( buf, (uchar*)str, len );
@@ -197,7 +197,7 @@ void prot_user_check_ip_reply( struct qqclient* qq, qqpacket* p )
 	bytebuffer *buf = p->buf;
 	ushort len;
 	char* str, *t;
-	NEW( str, buf->len );
+	NEW( char*, str, buf->len );
 	if( !str )	return;
 	t = str;
 	if( get_byte( buf ) != 2 ){
@@ -336,9 +336,9 @@ void prot_user_request_token_reply( struct qqclient* qq, qqpacket* p )
 			DBG (("url is too long."));	
 			return;
 		}
-		NEW( data, datalen );
-		NEW( url, 128 );
-		NEW( session, 128 );
+		NEW( char*, data, datalen );
+		NEW( char*, url, 128 );
+		NEW( char*, session, 128 );
 		get_data( buf, (uchar*)url, len );
 		ret = http_request( &qq->http_sock, url, session, data, &datalen );
 		if( ret == 0 ){

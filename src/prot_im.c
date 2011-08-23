@@ -354,7 +354,7 @@ void prot_im_recv_msg( struct qqclient* qq, qqpacket* p )
 		return;
 	}
 */
-	NEW( msg, sizeof( qqmessage ) );
+	NEW( qqmessage*, msg, sizeof( qqmessage ) );
 	if( !msg )
 		return;
 	//

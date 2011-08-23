@@ -69,7 +69,7 @@ qqclient* libqq_create( uint number, char* pass )
 	qqclient* qq;
 	if( !if_init )
 		libqq_init();
-	NEW( qq, sizeof(qqclient) );
+	NEW( qqclient*, qq, sizeof(qqclient) );
 	if( !qq ){
 		DEL( qq );
 		return NULL;
@@ -123,7 +123,7 @@ EXPORT int libqq_sendmessage( qqclient* qq, uint to, char* buf, char qun_msg )
 	char* tmp;
 	int len = strlen(buf);
 	if( len<1 ) return -2;
-	NEW( tmp, len*2 );
+	NEW( char*, tmp, len*2 );
 	gb_to_utf8( buf, tmp, len*2-1 );
 	if( qun_msg ){
 		qqqun* q = qun_get_by_ext( qq, to );
@@ -185,7 +185,7 @@ void buddy_msg_callback ( qqclient* qq, uint uid, time_t t, char* msg )
   	timeinfo = localtime ( &t );
 	strftime( timestr, 30, "%Y-%m-%d %H:%M:%S", timeinfo );
 	len = strlen( msg );
-	NEW( str, len+64 );
+	NEW( char*, str, len+64 );
 	if( uid == 10000 ){
 		sprintf( str, "broadcast^$System^$%s", msg );
 	}else{
@@ -210,7 +210,7 @@ void qun_msg_callback ( qqclient* qq, uint uid, uint int_uid,
 		return;
 	}
 	len = strlen( msg );
-	NEW( str, len+64 );
+	NEW( char*, str, len+64 );
 	sprintf( str, "clustermsg^$%u^$%u^$%s^$%s", q->ext_number, uid, timestr, msg );
 	qqclient_put_message( qq, str );
 }

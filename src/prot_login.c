@@ -180,7 +180,7 @@ void prot_login_request_reply( struct qqclient* qq, qqpacket* p )
 		int len;
 		len = get_word( buf );
 		uchar* data;
-		NEW( data, len );
+		NEW( uchar*, data, len );
 		if( !data )
 			return;
 		get_data( buf, data, len );
@@ -229,7 +229,7 @@ void prot_login_verify( struct qqclient* qq )
 	if( !p ) return;
 	bytebuffer *buf = p->buf;
 	bytebuffer *verify_data;
-	NEW( verify_data, sizeof(bytebuffer) );
+	NEW( bytebuffer*, verify_data, sizeof(bytebuffer) );
 	if( !verify_data ) {
 		packetmgr_del_packet( &qq->packetmgr, p );
 		return;
