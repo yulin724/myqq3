@@ -50,7 +50,7 @@ qqbuddy* buddy_get( qqclient* qq, uint number, int create )
 	b = (qqbuddy*)list_search( &qq->buddy_list, (void*)number, searcher );
 	//if not found, b must be NULL
 	if( b==NULL && create ){
-		NEW( b, sizeof( qqbuddy ) );
+		NEW( qqbuddy*, b, sizeof( qqbuddy ) );
 		if( !b ) return b;
 		b->number = number;
 		sprintf( b->nickname, "%u", number );
@@ -131,7 +131,7 @@ void buddy_put_event( qqclient* qq )
 	char *temp;
 	int i;
 	qqbuddy* b;
-	NEW( temp, KB(128) );
+	NEW( char*, temp, KB(128) );
 	if( !temp ) return;
 	strcpy( temp, "buddylist^$" );
 	pthread_mutex_lock( &qq->buddy_list.mutex );

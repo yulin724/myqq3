@@ -120,8 +120,8 @@ int main()
 {
 	memory_init();
 	char* p, *str2;
-	NEW( str2, 1024 );
-	NEW( p, 256 );
+	NEW( char*, str2, 1024 );
+	NEW( char*, p, 256 );
 	strcpy( str2, "hello");
 	puts( str2 );
 	DEL( p );

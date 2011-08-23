@@ -44,13 +44,13 @@ static void delete_func(const void *p)
 qqpacket* packetmgr_new_packet( qqclient* qq )
 {
 	qqpacket* p;
-	NEW( p, sizeof(qqpacket) );
+	NEW( qqpacket*, p, sizeof(qqpacket) );
 	if( !p ){
 		DBG (("Error: No enough memory."));
 		return NULL;
 	}
 	p->time_create = p->time_alive = time( NULL );
-	NEW( p->buf, sizeof(bytebuffer) );
+	NEW( bytebuffer*, p->buf, sizeof(bytebuffer) );
 	if( !p->buf ){
 		DBG (("Error: No enough memory."));
 		return NULL;
@@ -184,7 +184,7 @@ int handle_packet( qqclient* qq, qqpacket* p, uchar* data, int len )
 	qqpacketmgr* mgr = &qq->packetmgr;
 	mgr->recv_packets ++;
 	bytebuffer* buf;
-	NEW( buf, sizeof( bytebuffer ) );
+	NEW( bytebuffer*, buf, sizeof( bytebuffer ) );
 	if( !buf ){
 		DBG (("error: no enough memory to allocate buf."));
 		return -99;
@@ -244,7 +244,7 @@ void* WINAPI packetmgr_recv( void* data )
 	qqpacketmgr* mgr = &qq->packetmgr;
 	uchar* recv_buf;
 	int pos;
-	NEW( recv_buf, PACKET_SIZE );
+	NEW( uchar*, recv_buf, PACKET_SIZE );
 	p = packetmgr_new_packet( qq );
 	if( !p || !recv_buf ){
 		DBG (("error: p=%x  buf=%x", p, recv_buf ));

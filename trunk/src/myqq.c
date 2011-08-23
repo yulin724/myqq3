@@ -779,10 +779,10 @@ int main(int argc, char** argv)
 	//no color?
 	if( config_readint( g_conf, "NoColor" ) )
 		no_color = 1;
-	NEW( qun_buf, QUN_BUF_SIZE );
-	NEW( buddy_buf, BUDDY_BUF_SIZE );
-	NEW( print_buf, PRINT_BUF_SIZE );
-	NEW( qq, sizeof(qqclient) );
+	NEW( char*, qun_buf, QUN_BUF_SIZE );
+	NEW( char*, buddy_buf, BUDDY_BUF_SIZE );
+	NEW( char*, print_buf, PRINT_BUF_SIZE );
+	NEW( qqclient*, qq, sizeof(qqclient) );
 	if( !qun_buf || !buddy_buf || !print_buf || !qq ){
 		printf("no enough memory.\n");
 		return -1;

@@ -45,7 +45,7 @@ void prot_qun_send_msg( struct qqclient* qq, uint number, char* msg_content )
 	put_byte( buf, 0x2A );
 	put_int( buf, number );
 	bytebuffer* content_buf;
-	NEW( content_buf, sizeof(bytebuffer) );
+	NEW( bytebuffer*, content_buf, sizeof(bytebuffer) );
 	if( !content_buf ) {
 		packetmgr_del_packet( &qq->packetmgr, p );
 		return;
