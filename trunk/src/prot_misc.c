@@ -58,8 +58,8 @@ void prot_misc_broadcast( struct qqclient* qq, qqpacket* p )
 		qqclient_put_event( qq, event );
 	}else if( strcmp( e[0], "41" ) == 0 ){//still work in qq2009 #被加为好友，要验证
 		uchar type;
-		from = atoi( e[1] );
-		to = atoi( e[2] );
+		from = atoui( e[1] );
+		to = atoui( e[2] );
 		uchar len = e[3][0];
 		uchar* p = (uchar*)(&e[3][1]+len);
 		type = *p++;
@@ -80,8 +80,8 @@ void prot_misc_broadcast( struct qqclient* qq, qqpacket* p )
 		sprintf( e[1], "[%u]请求你添加为好友。附言：%s", from, e[0] );
 		buddy_msg_callback( qq, 101, time(NULL), e[1] );
 	}else if( strcmp( e[0], "04" ) == 0 ){
-		from = atoi( e[1] );
-		to = atoi( e[2] );
+		from = atoui( e[1] );
+		to = atoui( e[2] );
 		uchar len = e[3][0];
 		//e[0] e[1] e[2] can be reused 
 		if( len > 0 ){
@@ -93,20 +93,20 @@ void prot_misc_broadcast( struct qqclient* qq, qqpacket* p )
 		sprintf( e[1], "[%u]拒绝你添加为好友。附言：%s", from, e[0] );
 		buddy_msg_callback( qq, 100, time(NULL), e[1] );
 	}else if( strcmp( e[0], "40" ) == 0 ){  //#被加为好友，无需验证
-		from = atoi( e[1] );
+		from = atoui( e[1] );
 		//e[0] e[1] e[2] can be reused 
 		sprintf( e[1], "[%u]已经把你添加为好友。", from );
 		buddy_msg_callback( qq, 101, time(NULL), e[1] );
 	}else if( strcmp( e[0], "43" ) == 0 ){  //#主动加友成功
-		from = atoi( e[1] );
-		to = atoi( e[2] );
+		from = atoui( e[1] );
+		to = atoui( e[2] );
 		//refresh buddylist
 		buddy_update_list( qq );
 		sprintf( e[1], "[%u]已经把你添加为好友！", from );
 		buddy_msg_callback( qq, 100, time(NULL), e[1] );
 	}else if( strcmp( e[0], "03" ) == 0 ){
-		from = atoi( e[1] );
-		to = atoi( e[2] );
+		from = atoui( e[1] );
+		to = atoui( e[2] );
 		//refresh buddylist
 		buddy_update_list( qq );
 		sprintf( e[1], "你已经把[%u]添加为好友！", from );

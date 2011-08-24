@@ -154,3 +154,18 @@ int get_splitable_pos( char* buf, int pos )
 	}
 	return pos;	//buf[pos]²»¿ÉÈ¡
 }
+
+unsigned int atoui(const char * p)
+{
+	unsigned int total = 0;
+	char c;
+	while( 0 != (c = *p++) )
+	{
+		if(c >= '0' && c <= '9')
+			total = total * 10 + (c - '0');
+		else
+			return 0;
+	}
+    return total;
+}
+

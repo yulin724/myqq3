@@ -151,7 +151,7 @@ void init_file_path()
 	strcat( filename, tmp );
 	if( fp_log )
 		fclose( fp_log );
-	fp_log = fopen( filename, "aw" );
+	fp_log = fopen( filename, "a" );
 //	fp_log = fopen( filename, "w" );
 }
 
