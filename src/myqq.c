@@ -746,7 +746,7 @@ uint read_uid()
 
     idstr[ilen] = '\0';
 
-	return atoi(idstr);
+	return atoui(idstr);
 }
 
 char read_select()
@@ -814,9 +814,9 @@ DO_LOGIN:
 		qqclient_login( qq );
 	}else{
 		//check if failed here...
-		qqclient_create( qq, atoi(argv[1]), argv[2] );
+		qqclient_create( qq, atoui(argv[1]), argv[2] );
 		if( argc > 3 )
-			qq->mode = atoi(argv[3])!=0 ? QQ_HIDDEN : QQ_ONLINE;
+			qq->mode = atoui(argv[3])!=0 ? QQ_HIDDEN : QQ_ONLINE;
 		qqclient_login( qq );
 		argc = 1;
 	}
@@ -880,7 +880,7 @@ SELECT_CMD:
 				print_string("您在一个群中, 你可以和任何人谈话.\n");
 				break;
 			}
-			int n = atoi( arg );
+			int n = atoui( arg );
 			if( n < 0xFFFF )
 			{
 				char *p;
@@ -950,7 +950,7 @@ SELECT_CMD:
 		case CMD_ENTER:
 		case CMD_ENTER2:
 		{
-			int n = atoi( arg );
+			int n = atoui( arg );
 			if( n < 0xFFFF )
 			{
 				char *p;
@@ -1075,14 +1075,14 @@ SELECT_CMD:
 		case CMD_ADD:
 		case CMD_ADD2:
 		{
-			sprintf( print_buf, "添加[%d]的附言（默认空）：", atoi(arg) );
+			sprintf( print_buf, "添加[%u]的附言（默认空）：", atoui(arg) );
 			print_string(print_buf);
 			inputline( input, 50 );
-			qqclient_add( qq, atoi(arg), input );
+			qqclient_add( qq, atoui(arg), input );
 			break;
 		}
 		case CMD_DEL:
-			qqclient_del( qq, atoi(arg) );
+			qqclient_del( qq, atoui(arg) );
 			break;
 		default:
 			//use it as the last cmd's argument

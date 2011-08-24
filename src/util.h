@@ -7,6 +7,7 @@ int http_request( int* http_sock, char* url, char* session, char* data, int* dat
 char* mid_value( char* str, char* left, char* right, char* out, int outlen );
 void msleep( unsigned int ms ); 
 int get_splitable_pos( char* buf, int pos );
+unsigned int atoui(const char * p);
 
 #endif
 
