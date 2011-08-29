@@ -142,10 +142,10 @@ static void clear_screen()
 #define CCOL_LIGHTBLUE      "\033[1;34m"   
 #define CCOL_GREEN          "\033[0;32m"   
 #define CCOL_LIGHTGREEN    	"\033[1;32m"   
-#define CCOL_CYAN	    	"\033[0;36m"   
+#define CCOL_CYAN           "\033[0;36m"   
 #define CCOL_LIGHTCYAN    	"\033[1;36m"   
-#define CCOL_RED	    	"\033[0;31m"   
-#define CCOL_LIGHTRED	    "\033[1;31m"   
+#define CCOL_RED            "\033[0;31m"   
+#define CCOL_LIGHTRED	      "\033[1;31m"   
 #define CCOL_PURPLE         "\033[0;35m"   
 #define CCOL_LIGHTPURPLE    "\033[1;35m"   
 #define CCOL_LIGHTBROWN     "\033[0;33m"   
@@ -204,10 +204,22 @@ static void print_string(char *str)
 #ifdef __WIN32__
 	printf( str );
 #else
-	char tempstr[1024];
-	gb_to_utf8( str, tempstr, sizeof(tempstr) );
-	printf( tempstr );
+	char str_array[0x100];
+	int len  = strlen(str) * 4;
+	char * str_buf = str_array;
+
+	if(len > sizeof(str_array))
+		str_buf = (char *)malloc(len);
+
+	if(0 == str_buf)
+		return;
+
+	gb_to_utf8( str, str_buf, len );
+	printf( str_buf );
 	fflush(stdout);
+
+	if(len > sizeof(str_array))
+		free(str_buf);
 #endif
 }
 
