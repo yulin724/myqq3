@@ -1,0 +1,24 @@
+LIBRARY      "libqq.dll";
+
+EXPORTS		
+	libqq_init
+	libqq_cleanup
+	libqq_create
+	libqq_login
+	libqq_logout
+	libqq_keepalive
+	libqq_detach
+	libqq_getmessage
+	libqq_sendmessage
+	libqq_updatelist
+	libqq_verify
+	libqq_remove
+	libqq_status
+	libqq_refresh
+	libqq_getqunname
+	libqq_getqunmembername
+	libqq_getbuddyname
+	libqq_getextrainfo
+	libqq_addbuddy
+	libqq_delbuddy
+	libqq_sethttpproxy
